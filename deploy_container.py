@@ -1,6 +1,7 @@
 import os
 import sys
 import hashlib
+import dotenv
 
 def get_port(branch: str):
     return int.from_bytes(hashlib.sha256(branch.encode()).digest(), signed=False) % 50000 + 10000
@@ -19,13 +20,18 @@ if new not in branches:
 
 print(branches)
 
-config = ""
-
 os.system(f"docker stop junctionx_{new}")
 os.system(f"docker rm junctionx_{new}")
 
+os.system("cp /usr/local/share/junctionx/.env .")
 os.system(f"docker build -t junctionx .")
-os.system(f"docker run -d -p {new_port}:7000 --name junctionx_{new} junctionx")
+os.system("docker run -d -p %s:7000 --name junctionx_%s junctionx" 
+% (
+    new_port, 
+    new,
+))
+
+config = ""
 
 for branch in branches:
     port = get_port(branch)

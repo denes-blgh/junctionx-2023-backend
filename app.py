@@ -21,11 +21,11 @@ app.add_middleware(
     allow_headers=["*"]
 )
 
-app.include_router(router, prefix="/api")
+app.include_router(router, prefix="/api/v1")
 
 dotenv.load_dotenv()
 
-""" db_config: dict = {
+db_config: dict = {
     'connections': {
         # Dict format for connection
         'default': {
@@ -46,13 +46,13 @@ dotenv.load_dotenv()
             'default_connection': 'default',
         }
     }
-} """
+}
 
-""" register_tortoise(
+register_tortoise(
     app=app,
     config=db_config,
     generate_schemas=True
-) """
+)
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=7000)
