@@ -1,0 +1,5 @@
+fastapi==0.103.1
+uvicorn[standard]==0.23.2
+python_multipart==0.0.6
+tortoise-orm[asyncpg]==0.19.3
+orjson==3.9.10
