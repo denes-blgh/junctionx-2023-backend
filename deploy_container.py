@@ -3,7 +3,7 @@ import sys
 import hashlib
 
 def get_port(branch: str):
-    return int(hashlib.sha256(branch.encode()).digest()) % 50000 + 10000
+    return int.from_bytes(hashlib.sha256(branch.encode()).digest(), signed=False) % 50000 + 10000
 
 branches = []
 with open("/etc/nginx/branches", "r") as file:
