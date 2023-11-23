@@ -157,7 +157,7 @@ async def google_callback(
         "code": code,
         "client_id": os.environ["GOOGLE_CLIENT_ID"],
         "client_secret": os.environ["GOOGLE_CLIENT_SECRET"],
-        "redirect_uri": os.environ["GOOGLE_REDIRECT_URI"],
+        "redirect_uri": config.GOOGLE_REDIRECT_URI,
         "grant_type": "authorization_code",
     })
 
