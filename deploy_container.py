@@ -28,15 +28,8 @@ os.system(f"docker stop junctionx_{new}")
 os.system(f"docker rm junctionx_{new}")
 
 os.system(f"docker build -t junctionx .")
-os.system("""
-    docker run -d -p %s:7000 --name junctionx_%s 
-    -e DB_HOST=%s
-    -e DB_PORT=%s
-    -e DB_USER=%s
-    -e DB_PASSWORD=%s
-    -e DB_DATABASE=%s
-    junctionx
-""" % (
+os.system("docker run -d -p %s:7000 --name junctionx_%s -e DB_HOST=%s -e DB_PORT=%s -e DB_USER=%s -e DB_PASSWORD=%s -e DB_DATABASE=%s junctionx" 
+% (
     new_port, 
     new, 
     os.environ["DB_HOST"], 
