@@ -39,7 +39,7 @@ for branch in branches:
 
     config += ("""
         location ~ ^/junctionx/%s/api/(.*)$ {
-            rewrite ^/junctionx/%s/api/(.*) /api/$1 break;
+            rewrite ^/junctionx/%s/api/(.*) /$1 break;
             proxy_pass http://127.0.0.1:%s;
         }
     """ % (branch, branch, port))

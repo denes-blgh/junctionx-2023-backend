@@ -8,4 +8,4 @@ try:
     PREFIX = f"/junctionx/{BRANCH}/api"
 except KeyError:
     BRANCH = None
-    PREFIX = "/api"
+    PREFIX = ""
