@@ -47,7 +47,7 @@ with open("/etc/nginx/nginx.conf", "w") as file:
     with open("/etc/nginx/nginx.conf.end", "r") as end:
         file.write(end.read())
 
-os.system("systemctl restart nginx")
+os.system("sudo /nginx/sbin/nginx -s reload")
 
 with open("/etc/nginx/branches", "w") as file:
     for branch in branches:
