@@ -4,6 +4,7 @@ from pydantic import BaseModel
 import httpx
 from jose import jwt
 
+import common.config as config
 from models import Account
 from common.auth import create_token, verify_password, hash_password, check_email
 
@@ -187,7 +188,7 @@ async def google_callback(
         )
 
 
-    response = RedirectResponse("/docs")
+    response = RedirectResponse(config.PREFIX + "/docs")
     _login(response, account)
 
     return response
