@@ -37,7 +37,7 @@ for branch in branches:
     port = get_port(branch)
 
     config += ("""
-        location ~ ^/junctionx/%s/(.*)/api/(.*)$ {
+        location ~ ^/junctionx/%s/api/(.*)$ {
             rewrite ^/junctionx/%s/(.*) /$1 break;
             proxy_pass http://127.0.0.1:%s;
         }
