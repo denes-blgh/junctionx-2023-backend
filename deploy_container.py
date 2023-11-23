@@ -29,7 +29,7 @@ os.system("docker run -d -p %s:7000 --name junctionx_%s -e BRANCH=%s junctionx"
 % (
     new_port, 
     new,
-    branch,
+    new,
 ))
 
 config = ""
