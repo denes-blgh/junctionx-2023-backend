@@ -5,7 +5,6 @@ from fastapi.responses import ORJSONResponse
 from tortoise.contrib.fastapi import register_tortoise
 
 import dotenv
-import os
 
 from routers import router
 
@@ -21,7 +20,7 @@ app.add_middleware(
     allow_headers=["*"]
 )
 
-app.include_router(router, prefix="")
+app.include_router(router, prefix="/api")
 
 dotenv.load_dotenv()
 
