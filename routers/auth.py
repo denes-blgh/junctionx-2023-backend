@@ -124,7 +124,7 @@ async def google_login():
         "client_id": os.environ["GOOGLE_CLIENT_ID"],
         "response_type": "code",
         "scope": "openid email",
-        "redirect_uri": os.environ["GOOGLE_REDIRECT_URI"],
+        "redirect_uri": config.GOOGLE_REDIRECT_URI,
         "state": state,
         "nonce": random.randint(0, 2**32),
     })
