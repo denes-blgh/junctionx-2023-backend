@@ -89,6 +89,9 @@ class Token(BaseModel):
 def create_token(account: Account) -> str:
     scopes = []
 
+    if account.type == "staff":
+        scopes.append("staff")
+
     return encode_token({
         "sub": str(account.id),
         "scopes": " ".join(scopes),

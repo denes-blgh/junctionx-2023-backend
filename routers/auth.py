@@ -4,6 +4,7 @@ from pydantic import BaseModel
 import httpx
 from jose import jwt
 
+import common.config as config
 from models import Account
 from common.auth import create_token, verify_password, hash_password, check_email
 
@@ -73,7 +74,6 @@ async def _register(
     email: str = None,
     password: str = None,
     google_id: str = None,
-    x_id: str = None,
 ):
     account = Account()
 
@@ -90,9 +90,6 @@ async def _register(
 
     if google_id is not None:
         account.google_id = google_id
-
-    if x_id is not None:
-        account.x_id = x_id
 
     account.created_at = int(time.time())
     account.updated_at = int(time.time())
@@ -127,7 +124,7 @@ async def google_login():
         "client_id": os.environ["GOOGLE_CLIENT_ID"],
         "response_type": "code",
         "scope": "openid email",
-        "redirect_uri": os.environ["GOOGLE_REDIRECT_URI"],
+        "redirect_uri": config.GOOGLE_REDIRECT_URI,
         "state": state,
         "nonce": random.randint(0, 2**32),
     })
@@ -160,7 +157,7 @@ async def google_callback(
         "code": code,
         "client_id": os.environ["GOOGLE_CLIENT_ID"],
         "client_secret": os.environ["GOOGLE_CLIENT_SECRET"],
-        "redirect_uri": os.environ["GOOGLE_REDIRECT_URI"],
+        "redirect_uri": config.GOOGLE_REDIRECT_URI,
         "grant_type": "authorization_code",
     })
 
@@ -191,7 +188,7 @@ async def google_callback(
         )
 
 
-    response = RedirectResponse("/docs")
+    response = RedirectResponse(config.PREFIX + "/docs")
     _login(response, account)
 
     return response

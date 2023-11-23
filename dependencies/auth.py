@@ -8,6 +8,10 @@ from typing import Annotated
 
 def require_token(request: Request) -> Token:
     plain = request.cookies.get("token")
+
+    if plain is None:
+        raise HTTPException(status.HTTP_401_UNAUTHORIZED)
+
     payload = verify_token(plain)
 
     scopes = payload["scopes"].split(" ")

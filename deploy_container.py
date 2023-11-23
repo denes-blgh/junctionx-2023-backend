@@ -25,9 +25,10 @@ os.system(f"docker rm junctionx_{new}")
 
 os.system("cp /usr/local/share/junctionx/.env .")
 os.system(f"docker build -t junctionx .")
-os.system("docker run -d -p %s:7000 --name junctionx_%s junctionx" 
+os.system("docker run -d -p %s:7000 --name junctionx_%s -e BRANCH=%s junctionx" 
 % (
     new_port, 
+    new,
     new,
 ))
 
@@ -37,8 +38,8 @@ for branch in branches:
     port = get_port(branch)
 
     config += ("""
-        location ~ ^/junctionx/%s/(.*)$ {
-            rewrite ^/junctionx/%s/(.*) /$1 break;
+        location ~ ^/junctionx/%s/api/(.*)$ {
+            rewrite ^/junctionx/%s/api/(.*) /$1 break;
             proxy_pass http://127.0.0.1:%s;
         }
     """ % (branch, branch, port))
