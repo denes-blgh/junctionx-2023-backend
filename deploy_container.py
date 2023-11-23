@@ -30,12 +30,12 @@ os.system(f"docker run -d -p {new_port}:7000 --name junctionx_{new} junctionx")
 for branch in branches:
     port = get_port(branch)
 
-    config += """
+    config += ("""
         location ~ ^/junctionx/%s/(.*)$ {
             rewrite ^/junctionx/%s/(.*) /$1 break;
             proxy_pass http://127.0.0.1:%s;
         }
-    """ % branch, branch, port
+    """ % branch, branch, port)
 
 with open("/etc/nginx/nginx.conf", "w") as file:
 
