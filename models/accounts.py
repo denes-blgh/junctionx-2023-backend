@@ -28,3 +28,23 @@ class Account(models.Model):
     async def update(self):
         self.updated_at = int(time.time())
         return await self.save()
+
+
+class Resource(models.Model):
+    id = fields.IntField(pk=True)
+    name = fields.TextField()
+
+    class Meta:
+        table = "resources"
+
+
+class Appointment(models.Model):
+    id = fields.IntField(pk=True)
+    name = fields.TextField()
+    resource = fields.ForeignKeyField("models.Resource", related_name="appointments")
+    patient = fields.ForeignKeyField("models.Account", related_name="appointments")
+    start = fields.DatetimeField()
+    end = fields.DatetimeField()
+
+    class Meta:
+        table = "appointments"

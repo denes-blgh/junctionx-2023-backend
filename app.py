@@ -7,10 +7,12 @@ from tortoise.contrib.fastapi import register_tortoise
 import dotenv
 import os
 
+import common.config as config
 from routers import router
 
 app = FastAPI(
     default_response_class=ORJSONResponse,
+    root_path=config.PREFIX,
 )
 
 app.add_middleware(
@@ -22,8 +24,6 @@ app.add_middleware(
 )
 
 app.include_router(router, prefix="/api/v1")
-
-dotenv.load_dotenv()
 
 db_config: dict = {
     'connections': {
@@ -41,7 +41,7 @@ db_config: dict = {
     },
     'apps': {
         'models': {
-            'models': ['models'],
+            'models': ["aerich.models", "models"],
             # If no default_connection specified, defaults to 'default'
             'default_connection': 'default',
         }
@@ -51,7 +51,7 @@ db_config: dict = {
 register_tortoise(
     app=app,
     config=db_config,
-    generate_schemas=True
+    generate_schemas=False
 )
 
 if __name__ == "__main__":

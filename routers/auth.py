@@ -73,7 +73,6 @@ async def _register(
     email: str = None,
     password: str = None,
     google_id: str = None,
-    x_id: str = None,
 ):
     account = Account()
 
@@ -90,9 +89,6 @@ async def _register(
 
     if google_id is not None:
         account.google_id = google_id
-
-    if x_id is not None:
-        account.x_id = x_id
 
     account.created_at = int(time.time())
     account.updated_at = int(time.time())
