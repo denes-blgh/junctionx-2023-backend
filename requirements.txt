@@ -3,3 +3,7 @@ uvicorn[standard]==0.23.2
 python_multipart==0.0.6
 tortoise-orm[asyncpg]==0.19.3
 orjson==3.9.10
+python-dotenv==1.0.0
+python-jose[cryptography]==3.3.0 
+passlib[argon2]==1.7.4
+httpx==0.25.0
