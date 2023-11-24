@@ -32,7 +32,7 @@ def _login(
         value=token,
         max_age=400 * 24 * 3600, # 400 days
         httponly=True,
-        samesite="lax",
+        samesite="none",
         secure=True,
     )
 
@@ -136,7 +136,7 @@ async def google_login():
         value=state,
         max_age=60 * 10, # 10 minutes
         httponly=True,
-        samesite="lax",
+        samesite="none",
         secure=True,
     )
 
