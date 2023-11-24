@@ -32,7 +32,7 @@ def _login(
         value=token,
         max_age=400 * 24 * 3600, # 400 days
         httponly=True,
-        samesite="strict",
+        samesite="lax",
         secure=True,
     )
 
