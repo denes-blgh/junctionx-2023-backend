@@ -187,8 +187,13 @@ async def google_callback(
             google_id=token["sub"]
         )
 
-
-    response = RedirectResponse(config.PREFIX + "/docs")
+    if config.BRANCH is None:
+        response = RedirectResponse(config.PREFIX + "/docs")
+    elif config.BRANCH == "master":
+        response = RedirectResponse("https://dene.sh/junctionx/master/")
+    else:
+        response = RedirectResponse("https://dene.sh/junctionx/staging/")
+    
     _login(response, account)
 
     return response
