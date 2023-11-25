@@ -144,7 +144,7 @@ class Appointment(models.Model):
 
 
 class AppointmentResponse(BaseModel):
-    id: int
+    id: Optional[int]
     start: datetime.datetime
     end: datetime.datetime
     demand: DemandResponse
