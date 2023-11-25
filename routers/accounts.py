@@ -6,6 +6,7 @@ from typing import Annotated, Optional
 
 from dependencies.auth import require_account, require_staff_token, Token
 from common.auth import hash_password, check_email
+from common.logger import log
 
 from pydantic import BaseModel
 
@@ -75,6 +76,7 @@ async def change_password(
 ):
     account.password = hash_password(password)
     await account.update()
+    await log(f"Password changed for account {str(account.id)} ({account.first_name} {account.last_name}).")
 
 
 @router.post("/me/change-email")
@@ -89,6 +91,7 @@ async def change_email(
 
     account.email = email
     await account.update()
+    await log(f"Email changed for account {str(account.id)} ({account.first_name} {account.last_name}).")
 
 
 @router.delete("/me")
@@ -97,6 +100,7 @@ async def delete_me(
 ):
     response = Response()
     response.delete_cookie("token")
+    await log(f"Account deleted: {account.id} ({account.first_name} {account.last_name})")
     await account.delete()
     return response
 
@@ -111,4 +115,5 @@ async def delete_account(
     if account is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND)
 
+    await log(f"Account deleted: {account.id} ({account.first_name} {account.last_name})")
     await account.delete()

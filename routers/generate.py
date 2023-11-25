@@ -7,6 +7,7 @@ from typing import Annotated, Optional
 
 from dependencies.auth import require_account, require_staff_token, Token
 from common.auth import hash_password, check_email
+from common.logger import log
 
 from pydantic import BaseModel
 
@@ -132,3 +133,4 @@ async def initialize_schedule(
     
     await Appointment.all().delete()
     await Appointment.bulk_create(appointments)
+    await log(f"Scheduled {len(appointments)} appointments.")

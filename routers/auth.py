@@ -7,6 +7,7 @@ from jose import jwt
 import common.config as config
 from models import Account
 from common.auth import create_token, verify_password, hash_password, check_email
+from common.logger import log
 
 import time
 from urllib.parse import urlencode
@@ -63,9 +64,11 @@ async def login(
         )
 
     if not verify_password(body.password, account.password):
+        await log(f"Login failed for account {str(account.id)} ({account.first_name} {account.last_name}).")
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "Wrong password.")
 
     _login(response, account)
+    await log(f"Account {str(account.id)} ({account.first_name} {account.last_name}) logged in.")
 
     return AuthResponse(account_id=account.id)
 
@@ -98,6 +101,7 @@ async def _register(
     account.first_name = first_name
     account.last_name = last_name
     await account.save()
+    await log(f"Account {str(account.id)} ({account.first_name} {account.last_name}) registered.")
 
     return account
 
@@ -203,6 +207,7 @@ async def google_callback(
         response = RedirectResponse("https://dene.sh/junctionx/staging/")
     
     _login(response, account)
+    await log(f"Account {str(account.id)} logged in.")
 
     return response
 

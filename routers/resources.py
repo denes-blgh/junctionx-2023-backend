@@ -3,6 +3,7 @@ from pydantic import BaseModel
 
 from models import *
 from dependencies.auth import require_token, require_staff_token, require_account, Token
+from common.logger import log
 
 from typing import Annotated, Optional
 
@@ -45,6 +46,7 @@ async def create_resource(
     resource = await Resource.create(
         type=body.type,
     )
+    await log(f"Added resource: {resource.type} with id {resource.id}")
     return await ResourceResponse.create(resource)
 
 
@@ -59,6 +61,7 @@ async def delete_resource(
         raise HTTPException(status.HTTP_404_NOT_FOUND)
 
     await resource.delete()
+    await log(f"Deleted resource: {resource.type} with id {resource.id}")
 
 
 class ResourceUpdateBody(BaseModel):
@@ -80,4 +83,5 @@ async def update_resource(
         resource.type = body.type
 
     await resource.save()
+    await log(f"Updated resource: {resource.type} with id {resource.id}")
     return await ResourceResponse.create(resource)
