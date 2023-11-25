@@ -21,6 +21,7 @@ async def calendar():
 async def make_initial_schedule(
     day_length: int,
     shift_offset: int,
+    reserve_ratio: float,
 ):
     machines = []
     for resource in await Resource.all():
@@ -38,7 +39,12 @@ async def make_initial_schedule(
         ))
 
     print(2)
-    result: list[AppointmentBind] = schedule(machines, demands, day_length)
+    result: list[AppointmentBind] = schedule(
+        machines, 
+        demands, 
+        day_length, 
+        reserve_ratio
+    )
     print(3)
 
     appointments = []

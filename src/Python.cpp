@@ -72,15 +72,20 @@ struct Frame
 std::vector<Appointment> schedule (
     std::vector<Machine> &machines,
     std::vector<Demand> &demands,
-    const int day_length
+    int day_length,
+    const double reserve_ratio
 )
 {
+    const double day_length_d = day_length;
+    day_length = std::lround((double)day_length * (1 - reserve_ratio));
+    
     std::vector<Appointment> appointments;
 
     int day = 0;
 
     std::vector<Frame> frames;
     Frame best_frame;
+    size_t cycles = 0, best_cycles = 0;
 
     frames.emplace_back();
     frames.back().utilizations.resize(machines.size());
@@ -93,13 +98,13 @@ std::vector<Appointment> schedule (
 
         auto &utilizations = frame.utilizations;
 
-        for (size_t i = 0; i < machines.size(); i++)
+        for (size_t j = 0; j < demands.size(); j++)
         {
-            auto &machine = machines[i];
+            auto &demand = demands[j];
 
-            for (size_t j = 0; j < demands.size(); j++)
+            for (size_t i = 0; i < machines.size(); i++)
             {
-                auto &demand = demands[j];
+                auto &machine = machines[i];
 
                 if (utilizations[i].total + demand.duration > day_length)
                 {
@@ -115,12 +120,6 @@ std::vector<Appointment> schedule (
                 {
                     continue;
                 }
-
-                // only checking every permutation once
-                /* if (!utilizations[i].reservations.empty() && utilizations[i].reservations.back() > &demand)
-                {
-                    continue;
-                } */
 
                 if (std::find(
                     demand.machine_options.begin(),
@@ -143,12 +142,21 @@ std::vector<Appointment> schedule (
                 if (frames.back().depth > best_frame.depth)
                 {
                     best_frame = frames.back();
-                    std::cerr << best_frame.depth << std::endl;
+                    best_cycles = cycles;
+                    std::cerr << best_frame.depth << " " << cycles << std::endl;
                     if (best_frame.depth == demands.size())
                     {
                         std::cerr << "leaving" << std::endl;
                         goto done;
                     }
+                }
+
+                cycles++;
+                if (best_frame.depth >= 5 && cycles > 10 * best_cycles && cycles > 3 * 1e6)
+                {
+                    // ending search cuz its leading nowhere
+                    std::cerr << cycles << " " << best_cycles << std::endl;
+                    goto done;
                 }
             }
         }
@@ -160,7 +168,7 @@ std::vector<Appointment> schedule (
         auto &machine = machines[i];
         auto &utilization = best_frame.utilizations[i];
 
-        const auto gap = double(day_length - utilization.total) / utilization.reservations.size();
+        const auto gap = (day_length_d - utilization.total) / utilization.reservations.size();
 
         double last_end = 0;
         for (size_t i = 0; i < utilization.reservations.size(); i++)
@@ -236,6 +244,7 @@ PYBIND11_MODULE(utils, m)
         "schedule", &schedule,
         py::arg("machines"),
         py::arg("demands"),
-        py::arg("day_length")
+        py::arg("day_length"),
+        py::arg("reserve_ratio")
     );
 }

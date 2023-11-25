@@ -1,7 +1,7 @@
 import time
 from fastapi import APIRouter, HTTPException, status, Depends, Response
 
-from models import Account, AccountResponse, Demand
+from models import *
 
 from typing import Annotated, Optional
 
@@ -11,8 +11,13 @@ from common.auth import hash_password, check_email
 from pydantic import BaseModel
 
 from common.cancer_types import CancerType, cancer_types, get_cancer_type
+from common.calendar import get_calendar
 
 from routers.auth import _register
+
+from build.utils import Machine, schedule
+from build.utils import Appointment as AppointmentBind
+from build.utils import Demand as DemandBind
 
 import random
 import json
@@ -23,7 +28,7 @@ with open("common/names.json") as f:
 
 router = APIRouter(tags=["generate"])
 
-@router.get("/")
+@router.get("/patients")
 async def generate(number: int, impatient_ratio: float = 0.5):
     for i in range(number):
         # gender with non-equal probabilities
@@ -77,3 +82,53 @@ async def generate(number: int, impatient_ratio: float = 0.5):
 
     # create response
     return "jippiajee"
+
+
+@router.post("/schedule")
+async def initialize_schedule(
+    day_length: int,
+    shift_offset: int,
+    reserve_ratio: float,
+):
+    machines = []
+    for resource in await Resource.all():
+        machines.append(Machine(resource.id, resource.type))
+
+    demands = []
+    for demand in await Demand.all():
+        cancer = get_cancer_type(demand.cancer_type)
+        demands.append(DemandBind(
+            demand.id, 
+            demand.fractions,
+            cancer.avg_duration,
+            demand.fractions, 
+            cancer.machine_options,
+        ))
+
+    result: list[AppointmentBind] = schedule(
+        machines, 
+        demands, 
+        day_length, 
+        reserve_ratio
+    )
+
+    appointments = []
+    now = datetime.datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
+    for appointment in result:
+
+        start = now + datetime.timedelta(
+            days=appointment.day, 
+            minutes=appointment.start + shift_offset,
+        )
+
+        end = start + datetime.timedelta(minutes=appointment.duration)
+
+        appointments.append(Appointment(
+            demand_id=appointment.demand_id,
+            resource_id=appointment.machine_id,
+            start=start,
+            end=end,
+        ))
+    
+    await Appointment.all().delete()
+    await Appointment.bulk_create(appointments)

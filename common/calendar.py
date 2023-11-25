@@ -46,7 +46,7 @@ async def get_calendar():
         appointments = await Appointment.filter(
             start__gte=now.replace(hour=0, minute=0, second=0, microsecond=0),
             end__lte=now.replace(hour=23, minute=59, second=59, microsecond=999999)
-        ).prefetch_related("demand__patient").sort("start")
+        ).prefetch_related("demand__patient")
 
         for machine in resources:
             events = []
