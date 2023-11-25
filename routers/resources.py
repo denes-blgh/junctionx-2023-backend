@@ -12,13 +12,26 @@ router = APIRouter(tags=["resources"])
 
 @router.get("")
 async def get_resources(
-    token: Annotated[Token, Depends(require_account)],
+    token: Annotated[Token, Depends(require_staff_token)],
 ):
     resources = await Resource.all()
     return [
         await ResourceResponse.create(resource)
         for resource in resources
     ]
+
+
+@router.get("/{id}")
+async def get_resource(
+    id: int,
+    token: Annotated[Token, Depends(require_staff_token)],
+):
+    resource = await Resource.get_or_none(id=id)
+
+    if resource is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND)
+
+    return await ResourceResponse.create(resource)
 
 
 class ResourceBody(BaseModel):
