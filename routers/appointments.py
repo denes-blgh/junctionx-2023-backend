@@ -4,6 +4,7 @@ from pydantic import BaseModel
 from models import *
 from dependencies.auth import require_token, require_staff_token, require_account, Token
 from common.cancer_types import get_cancer_type
+from common.logger import log
 
 from typing import Annotated, Optional
 import datetime
@@ -73,6 +74,7 @@ async def create_appointment(
 
     await appointment.validate()
     await appointment.save()
+    await log(f"Appointment created: {appointment.id}")
 
     return await AppointmentResponse.create(appointment)
 
@@ -88,6 +90,7 @@ async def delete_appointment(
         raise HTTPException(status.HTTP_404_NOT_FOUND)
 
     await appointment.delete()
+    await log(f"Appointment deleted: {appointment.id}")
 
 
 class AppointmentUpdateBody(BaseModel):
@@ -119,5 +122,6 @@ async def update_appointment(
 
     await appointment.validate()
     await appointment.save()
+    await log(f"Appointment updated: {appointment.id}")
 
     return await AppointmentResponse.create(appointment)
