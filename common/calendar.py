@@ -36,7 +36,7 @@ async def get_calendar():
 
     resources = await Resource.all()
     
-    while len(calendar.days) < 7:
+    while len(calendar.days) < 30:
         weekday = now.weekday()
 
         day = Day(month_number=now.month, day_number=now.day, weekday=weekday)

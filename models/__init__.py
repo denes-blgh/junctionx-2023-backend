@@ -84,7 +84,7 @@ class ResourceResponse(BaseModel):
 
     @classmethod
     async def create(cls, resource: Resource):
-        now = datetime.datetime.now()
+        now = datetime.datetime.now() + datetime.timedelta(hours=2)
         appointments = await Appointment.all().filter(resource_id=resource.id).filter(start__gte=now).order_by("start")
         next_treatment = appointments[0].start if appointments else None
         return cls(
@@ -169,4 +169,25 @@ class AppointmentResponse(BaseModel):
             end=appointment.end,
             demand=await DemandResponse.create(await appointment.demand),
             resource=await ResourceResponse.create(await appointment.resource),
+        )
+    
+class Log(models.Model):
+    id = fields.IntField(pk=True)
+    timestamp = fields.DatetimeField(auto_now_add=True)
+    text = fields.TextField() # The log itself
+    
+    class Meta:
+        table = "logs"
+
+class LogResponse(BaseModel):
+    id: int
+    timestamp: datetime.datetime
+    text: str
+
+    @classmethod
+    async def create(cls, log: Log):
+        return cls(
+            id=log.id,
+            timestamp=log.timestamp,
+            text=log.text,
         )
