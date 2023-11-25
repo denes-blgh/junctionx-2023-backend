@@ -80,18 +80,18 @@ class ResourceResponse(BaseModel):
     id: int
     type: str
     status: ResourceStatus
-    next_treatement: Optional[datetime.datetime]
+    next_treatment: Optional[datetime.datetime]
 
     @classmethod
     async def create(cls, resource: Resource):
         now = datetime.datetime.now() + datetime.timedelta(hours=2)
         appointments = await Appointment.all().filter(resource_id=resource.id).filter(start__gte=now).order_by("start")
-        next_treatement = appointments[0].start if appointments else None
+        next_treatment = appointments[0].start if appointments else None
         return cls(
             id=resource.id,
             type=resource.type,
             status=resource.status,
-            next_treatement=next_treatement
+            next_treatment=next_treatment
         )
     
     @classmethod
