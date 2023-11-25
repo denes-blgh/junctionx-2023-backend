@@ -8,56 +8,89 @@ from common.cancer_types import CancerType, get_cancer_type, MachineType
 from models import Appointment, Resource
 from datetime import datetime
 
+from build.utils import Machine, schedule
+from build.utils import Appointment as AppointmentBind
+from build.utils import Demand as DemandBind
+
 # create a day with 5 machines, 16*60 minutes
 # 0 means no patient
 # 1 means patient
 
-day = np.zeros((5, 16*60))
+np.set_printoptions(precision=2)
 
 class Eval:
-    def __init__(self, calendar, shift_length = 4*60):
+    async def __init__(self, calendar, shift_length = 4*60, reserve_ratio = .8):
         self.calendar = calendar
         self.shift_length = shift_length
         self.TB_PREF = .38
         self.VB_PREF = .34
         self.U_PREF = .28
+        self.reserve_ratio = reserve_ratio
 
-
+        self.machines = []
+        for resource in await Resource.all():
+            self.machines.append(Machine(resource.id, resource.type))
 
     
-    def isOptimalArrangementOnDay(self, day_id, num_of_patients, all_treatment_time):
+    async def isOptimalArrangementOnDay(self):
+        num_of_patients = len(self.calendar)
+
+        print(num_of_patients, "num of patients")
+
+        result = schedule(
+            self.machines, 
+            self.shift_length, 
+            self.reserve_ratio
+        )
+
+        print(result, "result")
+
+        all_treatment_time = await self.getMachineUsages()
+
+        print(all_treatment_time, "all treatment time")
+
+        calendar_by_machine = sorted(self.calendar, key=lambda appointment: appointment.resource_id)
+        
         # calculate ideal gaps
-        ideal_gap_sizes = []
+        ideal_gap_sizes = np.zeros(5)
 
         # calculate actual gaps
-        actual_gaps = []
+        actual_gaps = [[] for _ in range(5)]
 
-        for machine, machine_index in self.calendar[day_id]:
+        for machine_index in range(len(self.calendar)):
+            current_appointment = self.calendar[machine_index]
+
             # calculate gaps for each machine
-            ideal_gap_sizes[machine_index] = (DAY_MINUTE_SLOTS - all_treatment_time) / (num_of_patients + 1)
+            if ideal_gap_sizes[current_appointment.resource_id - 1] == 0:
+                ideal_gap_sizes[current_appointment.resource_id - 1] = (self.shift_length - all_treatment_time[current_appointment.resource_id - 1]) / (num_of_patients + 1)
 
-            gaps = []
-            for i in range(DAY_MINUTE_SLOTS):
-                if machine[i] == 0:
-                    gaps[len(gaps) - 1] += 1
-                else:
-                    gaps.append(0)
-            actual_gaps.append(gaps)
+            # calculate actual gaps
+            if machine_index < len(self.calendar) - 1:
+                next_appointment = self.calendar[machine_index + 1]
+                if next_appointment.resource_id == current_appointment.resource_id:
+                    actual_gaps[current_appointment.resource_id - 1].append((next_appointment.start - current_appointment.end).total_seconds() / 60)
+
+
+
+        print(ideal_gap_sizes)
+
+        print(actual_gaps)
 
         gap_difs = []
         dif_avg = 1
 
-        for machine, machine_index in self.calendar[day_id]:
-            #calculate the difference between ideal and actual gaps
-            gap_num_diff = num_of_patients + 1 - len(actual_gaps[machine_index])
+        for machine_index in range(5):
+            if len(actual_gaps[machine_index]) < num_of_patients:
+                more_gap_count = num_of_patients
+            else:
+                more_gap_count = len(actual_gaps[machine_index]) - 1
 
-            more_gap_count = num_of_patients + 1 + abs(gap_num_diff)
-
-            difs = np.zeros(more_gap_count)
+            difs = []
 
             for gap in range(more_gap_count):
                 # find the smaller gap
-                if ideal_gap_sizes[machine_index] < actual_gaps[0][machine_index]:
+                print(actual_gaps, "csa")
+                if ideal_gap_sizes[machine_index] < actual_gaps[machine_index][gap]:
                     difs.append(1 - ideal_gap_sizes[machine_index] / actual_gaps[0][machine_index])
                     dif_avg *= difs[len(difs) - 1]
                 else:
@@ -66,10 +99,21 @@ class Eval:
 
             gap_difs.append(difs)
 
+        print(gap_difs)
+
         # calculate the avg of all difs
         dif_avg = 1 - dif_avg
         
         return dif_avg
+
+    async def getMachineUsages(self):
+        machine_usages = np.zeros(5)
+
+        for appointment in self.calendar:
+            duration_minutes = int((appointment.end - appointment.start).total_seconds() / 60)
+            machine_usages[appointment.resource_id - 1] += duration_minutes
+                
+        return machine_usages
 
     async def getMachineUsageRatio(self):
         machine_dict = {}
@@ -92,15 +136,12 @@ class Eval:
                 "usage": machine_usages[i]
             })
 
-        print(machine_usage_JSON, "json")
-
         return machine_usage_JSON
 
     async def getMachinePref(self, machine_usages = None, cancer_type: CancerType = None):
         if machine_usages is None:
             print("machine usages is none")
             machine_usages = await self.getMachineUsageRatio()
-            print(machine_usages, "machine usages")
 
         # machine usages type: {MachineType, usage}
         # order TB, TB, VB, VB, U
@@ -125,17 +166,18 @@ async def get_sss():
     start_time = datetime(2023, 11, 25, 0, 0)
     end_time = datetime(2023, 11, 25, 23, 59)
 
+    all_appointments = await Appointment.all()
+    print(len(all_appointments), "all appointments")
+
     appointments_shift1 = await Appointment.filter(
         start__gte=start_time,
         start__lte=end_time,
     ).order_by('start')
     
-    eval_current = Eval(appointments_shift1, 2*60)
-
-    print(appointments_shift1[0].resource_id)
-
+    eval_current = Eval(appointments_shift1, 14*60)
 
     print(await eval_current.getMachinePref())
 
+    print(await eval_current.isOptimalArrangementOnDay(), "is optimal")
 
     return "sss"
