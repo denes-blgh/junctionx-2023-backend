@@ -45,7 +45,6 @@ async def get_appointment(
 
 
 class AppointmentBody(BaseModel):
-    name: str
     start: datetime.datetime
     end: datetime.datetime
     resource_id: int
@@ -66,7 +65,6 @@ async def create_appointment(
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "Resource does not exist")
 
     appointment = Appointment(
-        name=body.name,
         start=body.start,
         end=body.end,
         resource_id=body.resource_id,
@@ -93,7 +91,6 @@ async def delete_appointment(
 
 
 class AppointmentUpdateBody(BaseModel):
-    name: Optional[str]
     start: Optional[datetime.datetime]
     end: Optional[datetime.datetime]
     resource_id: Optional[int]
@@ -110,9 +107,7 @@ async def update_appointment(
 
     if appointment is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND)
-
-    if body.name is not None:
-        appointment.name = body.name
+    
     if body.start is not None:
         appointment.start = body.start
     if body.end is not None:
