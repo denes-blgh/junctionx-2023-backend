@@ -1,5 +1,5 @@
 from tortoise import fields, models
-from tortoise.exceptions import IntegrityError
+from fastapi import HTTPException, status
 
 from enum import StrEnum
 import time
@@ -132,7 +132,10 @@ class Appointment(models.Model):
         ).exists()
 
         if overlapping_records:
-            raise IntegrityError("Overlapping intervals are not allowed")
+            raise HTTPException(
+                status.HTTP_400_BAD_REQUEST,
+                "Resource is already booked for this period"
+            )
 
     class Meta:
         table = "appointments"
