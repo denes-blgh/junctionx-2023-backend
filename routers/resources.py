@@ -63,6 +63,7 @@ async def delete_resource(
 
 class ResourceUpdateBody(BaseModel):
     type: Optional[str]
+    status: Optional[ResourceStatus]
 
 @router.patch("/{id}")
 async def update_resource(
