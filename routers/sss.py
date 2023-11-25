@@ -161,23 +161,12 @@ class Eval:
 router = APIRouter(tags=["sss"])
 
 @router.get("/")
+async def insert_urgent(demand, urgent_appointment_date):
+    return "vrrrram"
 
-async def get_sss():
-    start_time = datetime(2023, 11, 25, 0, 0)
-    end_time = datetime(2023, 11, 25, 23, 59)
+@router.get("/rearrange")
+async def rearrange(account_id, appointments):
+    return "csikao"
 
-    all_appointments = await Appointment.all()
-    print(len(all_appointments), "all appointments")
-
-    appointments_shift1 = await Appointment.filter(
-        start__gte=start_time,
-        start__lte=end_time,
-    ).order_by('start')
-    
-    eval_current = Eval(appointments_shift1, 14*60)
-
-    print(await eval_current.getMachinePref())
-
-    print(await eval_current.isOptimalArrangementOnDay(), "is optimal")
-
-    return "sss"
+async def new_appointment(demand):
+    return "jihau"

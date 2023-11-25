@@ -15,6 +15,9 @@ class AccountType(StrEnum):
     PATIENT = "patient"
     STAFF = "staff"
 
+class Gender(StrEnum):
+    MALE = "male"
+    FEMALE = "female"
 
 class Account(models.Model):
     id = fields.IntField(pk=True)
@@ -31,7 +34,8 @@ class Account(models.Model):
     updated_at = fields.IntField() # unix timestamp
 
     type = fields.CharEnumField(AccountType, default=AccountType.PATIENT)
-
+    gender = fields.CharEnumField(Gender)
+    
     class Meta:
         table = "accounts"
 
@@ -131,6 +135,7 @@ class Appointment(models.Model):
     id = fields.IntField(pk=True)
     demand = fields.ForeignKeyField("models.Demand", related_name="appointment")
     resource = fields.ForeignKeyField("models.Resource", related_name="appointments")
+    isInpatient = fields.models.BooleanField()
     start = fields.DatetimeField()
     end = fields.DatetimeField()
 
@@ -191,3 +196,7 @@ class LogResponse(BaseModel):
             timestamp=log.timestamp,
             text=log.text,
         )
+    
+class Room(BaseModel):
+    id: int
+    gender: fields.charEnumField(Gender)
