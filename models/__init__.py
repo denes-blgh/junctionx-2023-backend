@@ -1,7 +1,7 @@
 from tortoise import fields, models
 from fastapi import HTTPException, status
 
-from enum import StrEnum
+from enum import Enum, StrEnum
 import time
 import datetime
 from typing import Optional
@@ -63,10 +63,14 @@ class AccountResponse(BaseModel):
             type=account.type,
         )
 
+class ResourceStatus(StrEnum):
+    MAINTENANCE = "maintenance"
+    OPERATING = "operating"
 
 class Resource(models.Model):
     id = fields.IntField(pk=True)
     type = fields.TextField() # machine name
+    status = fields.CharEnumField(ResourceStatus, default=ResourceStatus.OPERATING) # machine status
 
     class Meta:
         table = "resources"
@@ -75,12 +79,19 @@ class Resource(models.Model):
 class ResourceResponse(BaseModel):
     id: int
     type: str
+    status: ResourceStatus
+    next_treatment: Optional[datetime.datetime]
 
     @classmethod
     async def create(cls, resource: Resource):
+        now = datetime.datetime.now()
+        appointments = await Appointment.all().filter(resource_id=resource.id).filter(start__gte=now).order_by("start")
+        next_treatment = appointments[0].start if appointments else None
         return cls(
             id=resource.id,
             type=resource.type,
+            status=resource.status,
+            next_treatment=next_treatment
         )
 
 
@@ -118,7 +129,7 @@ class DemandResponse(BaseModel):
 
 class Appointment(models.Model):
     id = fields.IntField(pk=True)
-    demand = fields.OneToOneField("models.Demand", related_name="appointment")
+    demand = fields.ForeignKeyField("models.Demand", related_name="appointment")
     resource = fields.ForeignKeyField("models.Resource", related_name="appointments")
     start = fields.DatetimeField()
     end = fields.DatetimeField()

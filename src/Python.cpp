@@ -18,7 +18,7 @@ struct Machine
 
 struct Demand
 {
-    int id, fractions, duration;
+    int id, fractions, duration, last_treatment = -1;
     bool is_inpatient;
     std::vector<std::string> machine_options;
 
@@ -83,110 +83,144 @@ std::vector<Appointment> schedule (
 
     int day = 0;
 
-    std::vector<Frame> frames;
-    Frame best_frame;
-    size_t cycles = 0, best_cycles = 0;
-
-    frames.emplace_back();
-    frames.back().utilizations.resize(machines.size());
-    frames.back().satisfied.resize(demands.size(), false);
-
-    while (frames.size() > 0)
+    while (true)
     {
-        auto frame = frames.back();
-        frames.pop_back();
-
-        auto &utilizations = frame.utilizations;
-
-        for (size_t j = 0; j < demands.size(); j++)
+        const auto cmp = [] (const Demand &a, const Demand &b) 
         {
-            auto &demand = demands[j];
+            if (a.last_treatment == b.last_treatment) {
+                return a.fractions < b.fractions;
+            }
+            if (a.last_treatment == -1) {
+                return false;
+            }
+            if (b.last_treatment == -1) {
+                return true;
+            }
+            return a.last_treatment < b.last_treatment;
+        };
 
-            for (size_t i = 0; i < machines.size(); i++)
+        std::sort(demands.begin(), demands.end(), cmp);
+
+        std::vector<Frame> frames;
+        Frame best_frame;
+        size_t cycles = 0, best_cycles = 0;
+
+        frames.emplace_back();
+        frames.back().utilizations.resize(machines.size());
+        frames.back().satisfied.resize(demands.size(), false);
+
+        while (frames.size() > 0)
+        {
+            auto frame = frames.back();
+            frames.pop_back();
+
+            auto &utilizations = frame.utilizations;
+
+            for (size_t j = 0; j < demands.size(); j++)
             {
-                auto &machine = machines[i];
+                auto &demand = demands[j];
 
-                if (utilizations[i].total + demand.duration > day_length)
-                {
+                if (demand.fractions == 0) {
                     continue;
                 }
 
-                if (demand.fractions == 0)
-                {
+                if (frame.satisfied[j]) {
                     continue;
                 }
 
-                if (frame.satisfied[j])
+                for (size_t i = 0; i < machines.size(); i++)
                 {
-                    continue;
-                }
+                    auto &machine = machines[i];
 
-                if (std::find(
-                    demand.machine_options.begin(),
-                    demand.machine_options.end(),
-                    machine.type
-                ) == demand.machine_options.end())
-                {
-                    continue;
-                }
-
-                auto new_frame = frame;
-                new_frame.depth++;
-
-                new_frame.utilizations[i].total += demand.duration;
-                new_frame.utilizations[i].reservations.push_back(&demand);
-                new_frame.satisfied[j] = true;
-
-                frames.emplace_back(std::move(new_frame));
-
-                if (frames.back().depth > best_frame.depth)
-                {
-                    best_frame = frames.back();
-                    best_cycles = cycles;
-                    std::cerr << best_frame.depth << " " << cycles << std::endl;
-                    if (best_frame.depth == demands.size())
+                    if (utilizations[i].total + demand.duration > day_length)
                     {
-                        std::cerr << "leaving" << std::endl;
+                        continue;
+                    }
+
+                    if (std::find(
+                        demand.machine_options.begin(),
+                        demand.machine_options.end(),
+                        machine.type
+                    ) == demand.machine_options.end())
+                    {
+                        continue;
+                    }
+
+                    auto new_frame = frame;
+                    new_frame.depth++;
+
+                    new_frame.utilizations[i].total += demand.duration;
+                    new_frame.utilizations[i].reservations.push_back(&demand);
+                    new_frame.satisfied[j] = true;
+
+                    frames.emplace_back(std::move(new_frame));
+
+                    if (frames.back().depth > best_frame.depth)
+                    {
+                        best_frame = frames.back();
+                        best_cycles = cycles;
+                        std::cerr << best_frame.depth << " " << cycles << std::endl;
+                        if (best_frame.depth == demands.size())
+                        {
+                            std::cerr << "leaving" << std::endl;
+                            goto done;
+                        }
+                    }
+
+                    cycles++;
+                    if (best_frame.depth >= 5 && cycles > 10 * best_cycles)
+                    {
+                        // ending search cuz its leading nowhere
+                        std::cerr << cycles << " " << best_cycles << std::endl;
                         goto done;
                     }
                 }
-
-                cycles++;
-                if (best_frame.depth >= 5 && cycles > 10 * best_cycles && cycles > 3 * 1e6)
-                {
-                    // ending search cuz its leading nowhere
-                    std::cerr << cycles << " " << best_cycles << std::endl;
-                    goto done;
-                }
             }
         }
-    }
 
-    done:
-    for (size_t i = 0; i < machines.size(); i++)
-    {
-        auto &machine = machines[i];
-        auto &utilization = best_frame.utilizations[i];
-
-        const auto gap = (day_length_d - utilization.total) / utilization.reservations.size();
-
-        double last_end = 0;
-        for (size_t i = 0; i < utilization.reservations.size(); i++)
+        done:
+        for (size_t i = 0; i < machines.size(); i++)
         {
-            auto &demand = utilization.reservations[i];
+            auto &machine = machines[i];
+            auto &utilization = best_frame.utilizations[i];
 
-            demand->fractions--;
+            const auto gap = (day_length_d - utilization.total) / utilization.reservations.size();
 
-            appointments.emplace_back(
-                demand->id,
-                machine.id,
-                day,
-                std::lround(last_end),
-                demand->duration
-            );
+            double last_end = 0;
+            for (size_t i = 0; i < utilization.reservations.size(); i++)
+            {
+                auto &demand = utilization.reservations[i];
 
-            last_end += demand->duration + gap;
+                demand->fractions--;
+                demand->last_treatment = day;
+
+                appointments.emplace_back(
+                    demand->id,
+                    machine.id,
+                    day,
+                    std::lround(last_end),
+                    demand->duration
+                );
+
+                last_end += demand->duration + gap;
+            }
         }
+
+        // exit condition
+        bool all_done = true;
+        for (auto &demand : demands)
+        {
+            if (demand.fractions > 0) {
+                all_done = false;
+                break;
+            }
+        }
+
+        if (all_done) {
+            break;
+        }
+
+        day++;
     }
 
     return appointments;

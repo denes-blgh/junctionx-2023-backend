@@ -210,6 +210,7 @@ async def google_callback(
 @router.get("/logout")
 async def logout(response: Response):
     try:
+        response = RedirectResponse('https://junctionx-2023-frontend.vercel.app/login', status_code=302)
         response.delete_cookie(
             key="token",
             samesite="none",
@@ -218,4 +219,4 @@ async def logout(response: Response):
     except: 
         pass
 
-    return response
+    return response if response else "Logged out."
