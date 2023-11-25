@@ -1,5 +1,5 @@
 from tortoise import fields, models
-from tortoise.exceptions import IntegrityError
+from fastapi import HTTPException, status
 
 from enum import StrEnum
 import time
@@ -126,13 +126,16 @@ class Appointment(models.Model):
     async def validate(self):
         # check for overlapping intervals for a single resource
         overlapping_records = await Appointment.filter(
-            resource=self.resource,
+            resource_id=self.resource_id,
             start__lte=self.end,
             end__gte=self.start,
         ).exists()
 
         if overlapping_records:
-            raise IntegrityError("Overlapping intervals are not allowed")
+            raise HTTPException(
+                status.HTTP_400_BAD_REQUEST,
+                "Resource is already booked for this period"
+            )
 
     class Meta:
         table = "appointments"
@@ -140,19 +143,19 @@ class Appointment(models.Model):
         unique_together = (("resource", "start"), ("resource", "end"))
 
 
-class AppointmentResponse(models.Model):
+class AppointmentResponse(BaseModel):
     id: int
-    demand: DemandResponse
-    resource: ResourceResponse
     start: datetime.datetime
     end: datetime.datetime
+    demand: DemandResponse
+    resource: ResourceResponse
 
     @classmethod
     async def create(cls, appointment: Appointment):
         return cls(
             id=appointment.id,
-            demand=await DemandResponse.create(await appointment.demand),
-            resource=await ResourceResponse.create(await appointment.resource),
             start=appointment.start,
             end=appointment.end,
+            demand=await DemandResponse.create(await appointment.demand),
+            resource=await ResourceResponse.create(await appointment.resource),
         )

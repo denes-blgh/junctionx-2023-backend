@@ -12,7 +12,7 @@ router = APIRouter(tags=["resources"])
 
 @router.get("")
 async def get_resources(
-    token: Annotated[Token, Depends(require_account)],
+    token: Annotated[Token, Depends(require_staff_token)],
 ):
     resources = await Resource.all()
     return [
@@ -21,8 +21,21 @@ async def get_resources(
     ]
 
 
+@router.get("/{id}")
+async def get_resource(
+    id: int,
+    token: Annotated[Token, Depends(require_staff_token)],
+):
+    resource = await Resource.get_or_none(id=id)
+
+    if resource is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND)
+
+    return await ResourceResponse.create(resource)
+
+
 class ResourceBody(BaseModel):
-    name: str
+    type: str
 
 @router.post("")
 async def create_resource(
@@ -30,7 +43,7 @@ async def create_resource(
     token: Annotated[Token, Depends(require_staff_token)],
 ):
     resource = await Resource.create(
-        name=body.name,
+        type=body.type,
     )
     return await ResourceResponse.create(resource)
 
@@ -49,7 +62,7 @@ async def delete_resource(
 
 
 class ResourceUpdateBody(BaseModel):
-    name: Optional[str]
+    type: Optional[str]
 
 @router.patch("/{id}")
 async def update_resource(
@@ -62,8 +75,8 @@ async def update_resource(
     if resource is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND)
 
-    if body.name is not None:
-        resource.name = body.name
+    if body.type is not None:
+        resource.type = body.type
 
     await resource.save()
     return await ResourceResponse.create(resource)

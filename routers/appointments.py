@@ -31,8 +31,20 @@ async def get_appointments(
     return result
 
 
+@router.get("/{id}")
+async def get_appointment(
+    id: int,
+    token: Annotated[Token, Depends(require_staff_token)],
+):
+    appointment = await Appointment.get_or_none(id=id)
+
+    if appointment is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND)
+
+    return await AppointmentResponse.create(appointment)
+
+
 class AppointmentBody(BaseModel):
-    name: str
     start: datetime.datetime
     end: datetime.datetime
     resource_id: int
@@ -52,12 +64,60 @@ async def create_appointment(
     if await Resource.exists(id=body.resource_id) is False:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "Resource does not exist")
 
-    appointment = await Appointment.create(
-        name=body.name,
+    appointment = Appointment(
         start=body.start,
         end=body.end,
         resource_id=body.resource_id,
         demand_id=body.demand_id,
     )
+
+    await appointment.validate()
+    await appointment.save()
+
+    return await AppointmentResponse.create(appointment)
+
+
+@router.delete("/{id}")
+async def delete_appointment(
+    id: int,
+    token: Annotated[Token, Depends(require_staff_token)],
+):
+    appointment = await Appointment.get_or_none(id=id)
+
+    if appointment is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND)
+
+    await appointment.delete()
+
+
+class AppointmentUpdateBody(BaseModel):
+    start: Optional[datetime.datetime]
+    end: Optional[datetime.datetime]
+    resource_id: Optional[int]
+    demand_id: Optional[int]
+
+
+@router.patch("/{id}")
+async def update_appointment(
+    id: int,
+    body: AppointmentUpdateBody,
+    token: Annotated[Token, Depends(require_staff_token)],
+):
+    appointment = await Appointment.get_or_none(id=id)
+
+    if appointment is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND)
+    
+    if body.start is not None:
+        appointment.start = body.start
+    if body.end is not None:
+        appointment.end = body.end
+    if body.resource_id is not None:
+        appointment.resource_id = body.resource_id
+    if body.demand_id is not None:
+        appointment.demand_id = body.demand_id
+
+    await appointment.validate()
+    await appointment.save()
 
     return await AppointmentResponse.create(appointment)
