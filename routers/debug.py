@@ -17,6 +17,7 @@ router = APIRouter(tags=["debug"])
 async def calendar():
     return await get_calendar()
 
+"""
 @router.get("/schedule")
 async def make_initial_schedule(
     day_length: int,
@@ -77,3 +78,4 @@ async def make_initial_schedule(
         }
         for appointment in appointments
     ]
+"""

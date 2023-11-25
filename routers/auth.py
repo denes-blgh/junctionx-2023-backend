@@ -5,7 +5,7 @@ import httpx
 from jose import jwt
 
 import common.config as config
-from models import Account
+from models import Account, Gender
 from common.auth import create_token, verify_password, hash_password, check_email
 from common.logger import log
 
@@ -14,6 +14,7 @@ from urllib.parse import urlencode
 import secrets
 import random
 import os
+from typing import Optional
 
 router = APIRouter(tags=["auth"])
 
@@ -79,6 +80,7 @@ async def _register(
     email: str = None,
     password: str = None,
     google_id: str = None,
+    gender: Gender = None,
 ):
     account = Account()
 
@@ -100,6 +102,7 @@ async def _register(
     account.updated_at = int(time.time())
     account.first_name = first_name
     account.last_name = last_name
+    account.gender = gender
     await account.save()
     await log(f"Account {str(account.id)} ({account.first_name} {account.last_name}) registered.")
 
@@ -111,6 +114,7 @@ class RegisterBody(BaseModel):
     password: str
     first_name: str
     last_name: str
+    gender: Optional[Gender]
 
 
 @router.post("/register")
@@ -215,7 +219,10 @@ async def google_callback(
 @router.get("/logout")
 async def logout(response: Response):
     try:
-        response = RedirectResponse('https://junctionx-2023-frontend.vercel.app/login', status_code=302)
+        response = RedirectResponse(
+            'https://junctionx-2023-frontend.vercel.app/login', 
+            status_code=302
+        )
         response.delete_cookie(
             key="token",
             samesite="none",
