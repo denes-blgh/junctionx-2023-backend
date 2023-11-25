@@ -168,7 +168,7 @@ std::vector<Appointment> schedule (
                     }
 
                     cycles++;
-                    if (best_frame.depth >= 5 && cycles > 10 * best_cycles && cycles > 1e6)
+                    if (best_frame.depth >= 5 && cycles > 10 * best_cycles)
                     {
                         // ending search cuz its leading nowhere
                         std::cerr << cycles << " " << best_cycles << std::endl;
