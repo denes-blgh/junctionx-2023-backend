@@ -50,6 +50,7 @@ class AppointmentBody(BaseModel):
     end: datetime.datetime
     resource_id: int
     demand_id: int
+    room: Optional[int]
 
 @router.post("")
 async def create_appointment(
@@ -70,6 +71,7 @@ async def create_appointment(
         end=body.end,
         resource_id=body.resource_id,
         demand_id=body.demand_id,
+        room_id=body.room,
     )
 
     await appointment.validate()
@@ -98,6 +100,7 @@ class AppointmentUpdateBody(BaseModel):
     end: Optional[datetime.datetime]
     resource_id: Optional[int]
     demand_id: Optional[int]
+    room_id: Optional[int]
 
 
 @router.patch("/{id}")
@@ -119,6 +122,8 @@ async def update_appointment(
         appointment.resource_id = body.resource_id
     if body.demand_id is not None:
         appointment.demand_id = body.demand_id
+    if body.room_id is not None:
+        appointment.room_id = body.room_id
 
     await appointment.validate()
     await appointment.save()

@@ -9,10 +9,7 @@ from dependencies.auth import require_account, require_staff_token, Token
 from common.auth import hash_password, check_email
 from common.logger import log
 
-from pydantic import BaseModel
-
 from common.cancer_types import CancerType, cancer_types, get_cancer_type
-from common.calendar import get_calendar
 
 from routers.auth import _register
 
@@ -38,6 +35,8 @@ async def generate(number: int, impatient_ratio: float = 0.5):
 
         first_name = random.choice(names["first"][gender])
         last_name = random.choice(names["last"])
+
+        weight = random.randint(50, 90)
 
         # cancer type with non-equal probabilities
 
@@ -69,7 +68,8 @@ async def generate(number: int, impatient_ratio: float = 0.5):
             email=None,
             password=None,
             first_name=first_name,
-            last_name=last_name
+            last_name=last_name,
+            gender=Gender.MALE if gender == "male" else Gender.FEMALE
         )
 
         # create demand
@@ -79,10 +79,8 @@ async def generate(number: int, impatient_ratio: float = 0.5):
             fractions=fractions,
             is_inpatient=is_impatient,
             created_at=int(time.time()),
+            weight=weight,
         )
-
-    # create response
-    return "jippiajee"
 
 
 @router.post("/schedule")

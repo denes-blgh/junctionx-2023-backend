@@ -34,7 +34,7 @@ class Account(models.Model):
     updated_at = fields.IntField() # unix timestamp
 
     type = fields.CharEnumField(AccountType, default=AccountType.PATIENT)
-    gender = fields.CharEnumField(Gender)
+    gender = fields.CharEnumField(Gender, null=True)
     
     class Meta:
         table = "accounts"
@@ -52,7 +52,8 @@ class AccountResponse(BaseModel):
     last_name: Optional[str]
     created_at: int
     updated_at: int
-    type: str
+    type: AccountType
+    gender: Optional[Gender]
 
     @classmethod
     async def create(cls, account: Account):
@@ -65,7 +66,9 @@ class AccountResponse(BaseModel):
             created_at=account.created_at,
             updated_at=account.updated_at,
             type=account.type,
+            gender=account.gender,
         )
+
 
 class ResourceStatus(StrEnum):
     MAINTENANCE = "maintenance"
@@ -106,6 +109,7 @@ class Demand(models.Model):
     created_at = fields.DatetimeField(auto_now_add=True)
     fractions = fields.IntField()
     is_inpatient = fields.BooleanField()
+    weight = fields.FloatField()
 
     class Meta:
         table = "demands"
@@ -118,6 +122,7 @@ class DemandResponse(BaseModel):
     created_at: datetime.datetime
     fractions: int
     is_inpatient: bool
+    weight: float
 
     @classmethod
     async def create(cls, demand: Demand):
@@ -128,6 +133,7 @@ class DemandResponse(BaseModel):
             created_at=demand.created_at,
             fractions=demand.fractions,
             is_inpatient=demand.is_inpatient,
+            weight=demand.weight,
         )
 
 
@@ -135,9 +141,9 @@ class Appointment(models.Model):
     id = fields.IntField(pk=True)
     demand = fields.ForeignKeyField("models.Demand", related_name="appointment")
     resource = fields.ForeignKeyField("models.Resource", related_name="appointments")
-    isInpatient = fields.models.BooleanField()
     start = fields.DatetimeField()
     end = fields.DatetimeField()
+    room = fields.ForeignKeyField("models.Room", related_name="appointments", null=True)
 
     async def validate(self):
         # check for overlapping intervals for a single resource
@@ -165,6 +171,7 @@ class AppointmentResponse(BaseModel):
     end: datetime.datetime
     demand: DemandResponse
     resource: ResourceResponse
+    room: Optional["RoomResponse"]
 
     @classmethod
     async def create(cls, appointment: Appointment):
@@ -174,8 +181,10 @@ class AppointmentResponse(BaseModel):
             end=appointment.end,
             demand=await DemandResponse.create(await appointment.demand),
             resource=await ResourceResponse.create(await appointment.resource),
+            room=await RoomResponse.create(await appointment.room) if appointment.room else None,
         )
-    
+
+
 class Log(models.Model):
     id = fields.IntField(pk=True)
     timestamp = fields.DatetimeField(auto_now_add=True)
@@ -183,6 +192,7 @@ class Log(models.Model):
     
     class Meta:
         table = "logs"
+
 
 class LogResponse(BaseModel):
     id: int
@@ -196,7 +206,26 @@ class LogResponse(BaseModel):
             timestamp=log.timestamp,
             text=log.text,
         )
-    
-class Room(BaseModel):
+
+
+class Room(models.Model):
+    id = fields.IntField(pk=True)
+    gender = fields.CharEnumField(Gender)
+    capacity = fields.IntField(default=0)
+
+    class Meta:
+        table = "rooms"
+
+
+class RoomResponse(BaseModel):
     id: int
-    gender: fields.charEnumField(Gender)
+    gender: Gender
+    capacity: int
+
+    @classmethod
+    async def create(cls, room: Room):
+        return cls(
+            id=room.id,
+            gender=room.gender,
+            capacity=room.capacity,
+        )

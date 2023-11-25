@@ -28,6 +28,7 @@ class DemandBody(BaseModel):
     fractions: int
     is_inpatient: bool
     created_at: datetime.datetime = None
+    weight: float
 
 
 @router.get("/{demand_id}")
@@ -55,6 +56,7 @@ async def create_demand(
         fractions=body.fractions,
         is_inpatient=body.is_inpatient,
         created_at=body.created_at,
+        weight=body.weight,
     )
     return await DemandResponse.create(demand)
 
@@ -76,6 +78,7 @@ class DemandUpdateBody(BaseModel):
     patient_id: Optional[int]
     fractions: Optional[int]
     is_inpatient: Optional[bool]
+    weight: Optional[float]
 
 
 @router.patch("/{demand_id}")
@@ -96,6 +99,8 @@ async def update_demand(
         demand.fractions = body.fractions
     if body.is_inpatient is not None:
         demand.is_inpatient = body.is_inpatient
+    if body.weight is not None:
+        demand.weight = body.weight
 
     await demand.save()
     return await DemandResponse.create(demand)

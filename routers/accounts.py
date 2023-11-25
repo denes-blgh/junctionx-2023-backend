@@ -19,16 +19,8 @@ async def get_accounts(
 ):
     accounts = await Account.all()
     return [
-        AccountResponse(
-            id=account.id,
-            email=account.email,
-            google_id=account.google_id,
-            first_name=account.first_name,
-            last_name=account.last_name,
-            created_at=account.created_at,
-            updated_at=account.updated_at,
-            type=account.type,
-        ) for account in accounts
+        await AccountResponse.create(account)
+        for account in accounts
     ]
 
 
@@ -36,16 +28,7 @@ async def get_accounts(
 async def get_me(
     account: Annotated[Account, Depends(require_account)],
 ):
-    return AccountResponse(
-        id=account.id,
-        email=account.email,
-        google_id=account.google_id,
-        first_name=account.first_name,
-        last_name=account.last_name,
-        created_at=account.created_at,
-        updated_at=account.updated_at,
-        type=account.type,
-    )
+    return await AccountResponse.create(account)
 
 
 @router.get("/{id}")
@@ -58,15 +41,7 @@ async def get_account(
     if account is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND)
 
-    return AccountResponse(
-        email=account.email,
-        google_id=account.google_id,
-        first_name=account.first_name,
-        last_name=account.last_name,
-        created_at=account.created_at,
-        updated_at=account.updated_at,
-        type=account.type,
-    )
+    return await AccountResponse.create(account)
 
 
 @router.post("/me/change-password")
