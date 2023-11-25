@@ -93,15 +93,6 @@ class ResourceResponse(BaseModel):
             status=resource.status,
             next_treatment=next_treatment
         )
-    
-    @classmethod
-    async def create_without_time(cls, resource: Resource):
-        return cls(
-            id=resource.id,
-            type=resource.type,
-            status=resource.status,
-            next_treatement=None
-        )
 
 
 class Demand(models.Model):
@@ -180,12 +171,3 @@ class AppointmentResponse(BaseModel):
             resource=await ResourceResponse.create(await appointment.resource),
         )
     
-    @classmethod
-    async def create_without_time(cls, appointment: Appointment):
-        return cls(
-            id=appointment.id,
-            start=appointment.start,
-            end=appointment.end,
-            demand=await DemandResponse.create(await appointment.demand),
-            resource=await ResourceResponse.create_without_time(await appointment.resource),
-        )

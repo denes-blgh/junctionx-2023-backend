@@ -16,6 +16,6 @@ async def get_upcoming(
     appointments = await Appointment.all().filter(start__gte=now).order_by("start").limit(10)
     result = []
     for appointment in appointments:
-        result.append(await AppointmentResponse.create_without_time(appointment))
+        result.append(await AppointmentResponse.create(appointment))
     
     return result
