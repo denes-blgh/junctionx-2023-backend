@@ -80,18 +80,18 @@ class ResourceResponse(BaseModel):
     id: int
     type: str
     status: ResourceStatus
-    next_time: str
+    next_treatement: Optional[datetime.datetime]
 
     @classmethod
     async def create(cls, resource: Resource):
         now = datetime.datetime.now()
         appointments = await Appointment.all().filter(resource_id=resource.id).filter(start__gte=now).order_by("start")
-        next_time = await appointments.first().start if appointments else None
+        next_treatement = appointments[0].start if appointments else None
         return cls(
             id=resource.id,
             type=resource.type,
             status=resource.status,
-            next_time=next_time
+            next_treatement=next_treatement
         )
 
 
@@ -129,7 +129,7 @@ class DemandResponse(BaseModel):
 
 class Appointment(models.Model):
     id = fields.IntField(pk=True)
-    demand = fields.OneToOneField("models.Demand", related_name="appointment")
+    demand = fields.ForeignKeyField("models.Demand", related_name="appointment")
     resource = fields.ForeignKeyField("models.Resource", related_name="appointments")
     start = fields.DatetimeField()
     end = fields.DatetimeField()
