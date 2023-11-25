@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException, status, Depends, Response
 
-from models import Account
+from models import Account, AccountResponse
 
 from typing import Annotated, Optional
 
@@ -10,15 +10,6 @@ from common.auth import hash_password, check_email
 from pydantic import BaseModel
 
 router = APIRouter(tags=["accounts"])
-
-
-class AccountResponse(BaseModel):
-    id: int
-    email: Optional[str]
-    google_id: Optional[str]
-    created_at: int
-    updated_at: int
-    type: str
 
 
 @router.get("")
@@ -31,6 +22,8 @@ async def get_accounts(
             id=account.id,
             email=account.email,
             google_id=account.google_id,
+            first_name=account.first_name,
+            last_name=account.last_name,
             created_at=account.created_at,
             updated_at=account.updated_at,
             type=account.type,
@@ -46,6 +39,8 @@ async def get_me(
         id=account.id,
         email=account.email,
         google_id=account.google_id,
+        first_name=account.first_name,
+        last_name=account.last_name,
         created_at=account.created_at,
         updated_at=account.updated_at,
         type=account.type,
@@ -65,6 +60,8 @@ async def get_account(
     return AccountResponse(
         email=account.email,
         google_id=account.google_id,
+        first_name=account.first_name,
+        last_name=account.last_name,
         created_at=account.created_at,
         updated_at=account.updated_at,
         type=account.type,

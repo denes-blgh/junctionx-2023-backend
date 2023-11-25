@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException, status, Depends
 from pydantic import BaseModel
 
-from models import Account, Resource
+from models import *
 from dependencies.auth import require_token, require_staff_token, require_account, Token
 
 from typing import Annotated, Optional
@@ -10,20 +10,14 @@ from typing import Annotated, Optional
 router = APIRouter(tags=["resources"])
 
 
-class ResourceResponse(BaseModel):
-    id: int
-    name: str
-
 @router.get("")
 async def get_resources(
     token: Annotated[Token, Depends(require_account)],
 ):
     resources = await Resource.all()
     return [
-        ResourceResponse(
-            id=resource.id,
-            name=resource.name,
-        ) for resource in resources
+        await ResourceResponse.create(resource)
+        for resource in resources
     ]
 
 
@@ -38,10 +32,7 @@ async def create_resource(
     resource = await Resource.create(
         name=body.name,
     )
-    return ResourceResponse(
-        id=resource.id,
-        name=resource.name,
-    )
+    return await ResourceResponse.create(resource)
 
 
 @router.delete("/{id}")
@@ -75,7 +66,4 @@ async def update_resource(
         resource.name = body.name
 
     await resource.save()
-    return ResourceResponse(
-        id=resource.id,
-        name=resource.name,
-    )
+    return await ResourceResponse.create(resource)

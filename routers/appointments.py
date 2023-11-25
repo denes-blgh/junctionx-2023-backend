@@ -1,8 +1,9 @@
 from fastapi import APIRouter, HTTPException, status, Depends
 from pydantic import BaseModel
 
-from models import Account, Appointment, Resource
+from models import *
 from dependencies.auth import require_token, require_staff_token, require_account, Token
+from common.cancer_types import get_cancer_type
 
 from typing import Annotated, Optional
 import datetime
@@ -10,14 +11,6 @@ import datetime
 
 router = APIRouter(tags=["appointments"])
 
-
-class AppointmentResponse(BaseModel):
-    id: int
-    name: str
-    start: datetime.datetime
-    end: datetime.datetime
-    resource_id: int
-    patient_id: int
 
 @router.get("")
 async def get_appointments(
@@ -29,17 +22,13 @@ async def get_appointments(
     if resource_id is not None:
         appointments = appointments.filter(resource_id=resource_id)
     if patient_id is not None:
-        appointments = appointments.filter(patient_id=patient_id)
-    return [
-        AppointmentResponse(
-            id=appointment.id,
-            name=appointment.name,
-            start=appointment.start,
-            end=appointment.end,
-            resource_id=appointment.resource_id,
-            patient_id=appointment.patient_id,
-        ) for appointment in appointments
-    ]
+        appointments = appointments.filter(demand__patient_id=patient_id)
+
+    result = []
+    for appointment in appointments:
+        result.append(await AppointmentResponse.create(appointment))
+
+    return result
 
 
 class AppointmentBody(BaseModel):
@@ -47,7 +36,7 @@ class AppointmentBody(BaseModel):
     start: datetime.datetime
     end: datetime.datetime
     resource_id: int
-    patient_id: int
+    demand_id: int
 
 @router.post("")
 async def create_appointment(
@@ -57,8 +46,8 @@ async def create_appointment(
     if body.start > body.end:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "Start must be before end")
     
-    if await Account.exists(id=body.patient_id) is False:
-        raise HTTPException(status.HTTP_400_BAD_REQUEST, "Patient does not exist")
+    if await Demand.exists(id=body.demand_id) is False:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "Demand does not exist")
     
     if await Resource.exists(id=body.resource_id) is False:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "Resource does not exist")
@@ -68,14 +57,7 @@ async def create_appointment(
         start=body.start,
         end=body.end,
         resource_id=body.resource_id,
-        patient_id=body.patient_id,
+        demand_id=body.demand_id,
     )
 
-    return AppointmentResponse(
-        id=appointment.id,
-        name=appointment.name,
-        start=appointment.start,
-        end=appointment.end,
-        resource_id=appointment.resource_id,
-        patient_id=appointment.patient_id,
-    )
+    return await AppointmentResponse.create(appointment)

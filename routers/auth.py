@@ -71,6 +71,8 @@ async def login(
 
 
 async def _register(
+    first_name: str = None,
+    last_name: str = None,
     email: str = None,
     password: str = None,
     google_id: str = None,
@@ -93,6 +95,8 @@ async def _register(
 
     account.created_at = int(time.time())
     account.updated_at = int(time.time())
+    account.first_name = first_name
+    account.last_name = last_name
     await account.save()
 
     return account
@@ -101,6 +105,8 @@ async def _register(
 class RegisterBody(BaseModel):
     email: str
     password: str
+    first_name: str
+    last_name: str
 
 
 @router.post("/register")
@@ -110,6 +116,8 @@ async def register(
     account = await _register(
         email=body.email,
         password=body.password,
+        first_name=body.first_name,
+        last_name=body.last_name,
     )
 
     return AuthResponse(account_id=account.id)
@@ -195,5 +203,19 @@ async def google_callback(
         response = RedirectResponse("https://dene.sh/junctionx/staging/")
     
     _login(response, account)
+
+    return response
+
+
+@router.get("/logout")
+async def logout(response: Response):
+    try:
+        response.delete_cookie(
+            key="token",
+            samesite="none",
+            secure=True,
+        )
+    except: 
+        pass
 
     return response
