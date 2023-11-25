@@ -13,7 +13,7 @@ async def get_upcoming(
     token: Annotated[Token, Depends(require_staff_token)],
 ):
     now = datetime.datetime.now() + datetime.timedelta(hours=2)
-    appointments = await Appointment.all().filter(start__gte=now).order_by("start").limit(10)
+    appointments = await Appointment.all().filter(start__gte=now).order_by("start").limit(15)
     result = []
     for appointment in appointments:
         result.append(await AppointmentResponse.create(appointment))
