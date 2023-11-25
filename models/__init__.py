@@ -171,3 +171,23 @@ class AppointmentResponse(BaseModel):
             resource=await ResourceResponse.create(await appointment.resource),
         )
     
+class Log(models.Model):
+    id = fields.IntField(pk=True)
+    timestamp = fields.DatetimeField(auto_now_add=True)
+    text = fields.TextField() # The log itself
+    
+    class Meta:
+        table = "logs"
+
+class LogResponse(BaseModel):
+    id: int
+    timestamp: datetime.datetime
+    text: str
+
+    @classmethod
+    async def create(cls, log: Log):
+        return cls(
+            id=log.id,
+            timestamp=log.timestamp,
+            text=log.text,
+        )
