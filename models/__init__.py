@@ -84,7 +84,7 @@ class ResourceResponse(BaseModel):
 
     @classmethod
     async def create(cls, resource: Resource):
-        now = datetime.datetime.now()
+        now = datetime.datetime.now() + datetime.timedelta(hours=2)
         appointments = await Appointment.all().filter(resource_id=resource.id).filter(start__gte=now).order_by("start")
         next_treatement = appointments[0].start if appointments else None
         return cls(
@@ -92,6 +92,15 @@ class ResourceResponse(BaseModel):
             type=resource.type,
             status=resource.status,
             next_treatement=next_treatement
+        )
+    
+    @classmethod
+    async def create_without_time(cls, resource: Resource):
+        return cls(
+            id=resource.id,
+            type=resource.type,
+            status=resource.status,
+            next_treatement=None
         )
 
 
@@ -169,4 +178,14 @@ class AppointmentResponse(BaseModel):
             end=appointment.end,
             demand=await DemandResponse.create(await appointment.demand),
             resource=await ResourceResponse.create(await appointment.resource),
+        )
+    
+    @classmethod
+    async def create_without_time(cls, appointment: Appointment):
+        return cls(
+            id=appointment.id,
+            start=appointment.start,
+            end=appointment.end,
+            demand=await DemandResponse.create(await appointment.demand),
+            resource=await ResourceResponse.create_without_time(await appointment.resource),
         )
