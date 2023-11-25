@@ -1,7 +1,7 @@
 from models import Log
 
-def log(message: str):
+async def log(message: str):
     log = Log(
         text=message,
     )
-    log.save()
+    await log.save()

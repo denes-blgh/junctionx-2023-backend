@@ -36,8 +36,6 @@ def _login(
         samesite="none",
         secure=True,
     )
-    
-    log(f"Account {str(account.id)} ({account.first_name} {account.last_name}) logged in.")
 
 
 class LoginBody(BaseModel):
@@ -70,6 +68,7 @@ async def login(
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "Wrong password.")
 
     _login(response, account)
+    await log(f"Account {str(account.id)} ({account.first_name} {account.last_name}) logged in.")
 
     return AuthResponse(account_id=account.id)
 
@@ -208,6 +207,7 @@ async def google_callback(
         response = RedirectResponse("https://dene.sh/junctionx/staging/")
     
     _login(response, account)
+    await log(f"Account {str(account.id)} logged in.")
 
     return response
 
