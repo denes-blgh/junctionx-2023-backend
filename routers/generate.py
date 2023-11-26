@@ -16,6 +16,7 @@ from routers.auth import _register
 from build.utils import Machine, schedule
 from build.utils import Appointment as AppointmentBind
 from build.utils import Demand as DemandBind
+from build.utils import Room as RoomBind
 
 import random
 import json
@@ -94,19 +95,25 @@ async def initialize_schedule(
         machines.append(Machine(resource.id, resource.type))
 
     demands = []
-    for demand in await Demand.all():
+    for demand in await Demand.all().prefetch_related("patient"):
         cancer = get_cancer_type(demand.cancer_type)
         demands.append(DemandBind(
             demand.id, 
             demand.fractions,
             cancer.avg_duration,
-            demand.fractions, 
+            demand.is_inpatient,
+            demand.patient.gender,
             cancer.machine_options,
         ))
+
+    rooms = []
+    for room in await Room.all():
+        rooms.append(RoomBind(room.id, room.gender, room.capacity))
 
     result: list[AppointmentBind] = schedule(
         machines, 
         demands, 
+        rooms,
         day_length, 
         reserve_ratio
     )
@@ -127,6 +134,7 @@ async def initialize_schedule(
             resource_id=appointment.machine_id,
             start=start,
             end=end,
+            room_id=appointment.room_id,
         ))
     
     await Appointment.all().delete()
