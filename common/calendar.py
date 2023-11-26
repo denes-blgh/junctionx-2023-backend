@@ -57,9 +57,11 @@ async def get_calendar():
 
         # get maintenances for this day
         maintenances = await MaintenanceEvent.filter(
-            day=day,
-            type=EventType.MAINTENANCE
+            start__gte=datetime.datetime(2023, now.month, now.day, 0, 0),
+            start__lte=datetime.datetime(2023, now.month, now.day, 23, 59),
         )
+
+        #print(len(maintenances), now.month, now.day)
 
         for machine in resources:
             events = []
@@ -76,9 +78,10 @@ async def get_calendar():
 
             for maintenance in maintenances:
                 if maintenance.resource_id == machine.id:
+                    #print("pacek")
                     event = Event(
-                        start_hour=maintenance.start_hour, 
-                        start_minute=maintenance.start_minute, 
+                        start_hour=maintenance.start.hour,
+                        start_minute=maintenance.start.minute, 
                         duration=maintenance.duration,
                         #appointment_id=maintenance.id,
                         display_name=maintenance.display_name,

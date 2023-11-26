@@ -13,9 +13,7 @@ import datetime
 router = APIRouter(tags=["maintenances"])
 
 class MaintenanceBody(BaseModel):
-    day: int = 10
-    start_hour: int = 8
-    start_minute: int = 0
+    start: datetime.datetime = datetime.datetime(2023, 11, 27, 10, 20)
     duration: int = 240
     resource_id: int = 2
 
@@ -26,11 +24,8 @@ async def create_maintenance(
     # TODO: reschedule appointments
 
     maintenance = await MaintenanceEvent.create(
-        day=body.day,
-        start_hour=body.start_hour,
-        start_minute=body.start_minute,
+        start=body.start,
         duration=body.duration,
-        type = EventType.MAINTENANCE,
         resource_id = body.resource_id,
         display_name = "Maintenance",
         color = "#FF0000"
