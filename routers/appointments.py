@@ -125,7 +125,7 @@ async def update_appointment(
     if body.room_id is not None:
         appointment.room_id = body.room_id
 
-    await appointment.validate()
+    #await appointment.validate()
     await appointment.save()
     await log(f"Appointment updated: {appointment.id}")
 
