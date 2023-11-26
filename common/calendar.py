@@ -29,7 +29,8 @@ class Event(BaseModel):
     start_hour: int
     start_minute: int
     duration: int
-    appointment_id: int
+    appointment_id: Optional[int] = None
+    resource_id: Optional[int] = None
     display_name: Optional[str] = None
     color: str = "#36BDAD"
 

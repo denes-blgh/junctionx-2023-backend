@@ -234,14 +234,15 @@ class EventType(StrEnum):
     APPOINTMENT = "appointment"
     MAINTENANCE = "maintenance"
     FIDESZKETHARMAD = "fideszketharmad"
-    
+
 class MaintenanceEvent(models.Model):
-    start_hour: int = 0
-    start_minute: int = 0
-    duration: int
-    type: EventType
-    display_name: Optional[str] = None
-    color: str = "#36BDAD"
+    day = fields.IntField()
+    start_hour = fields.IntField()
+    start_minute = fields.IntField()
+    duration = fields.IntField()
+    type: fields.CharEnumField(EventType)
+    display_name = fields.TextField(null=True)
+    color = fields.TextField(null=True)
 
 
 class MaintenanceEventResponse(BaseModel):
