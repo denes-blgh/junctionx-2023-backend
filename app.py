@@ -4,7 +4,6 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import ORJSONResponse
 from tortoise.contrib.fastapi import register_tortoise
 
-import dotenv
 import os
 
 import common.config as config
