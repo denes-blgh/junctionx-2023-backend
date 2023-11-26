@@ -206,10 +206,8 @@ async def google_callback(
 
     if config.BRANCH is None:
         response = RedirectResponse(config.PREFIX + "/docs")
-    elif config.BRANCH == "master":
-        response = RedirectResponse("https://dene.sh/junctionx/master/")
     else:
-        response = RedirectResponse("https://dene.sh/junctionx/staging/")
+        response = RedirectResponse("https://junctionx-2023-frontend.vercel.app/")
     
     _login(response, account)
     await log(f"Account {str(account.id)} logged in.")
