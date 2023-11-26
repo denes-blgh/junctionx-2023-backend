@@ -72,13 +72,16 @@ async def get_calendar():
                         color = "#00ff5e"
                         #print("has no room")
                     
+                    if color != "#36BDAD":
+                        print(color)
+
                     event = Event(
                         start_hour=appointment.start.hour, 
                         start_minute=appointment.start.minute, 
                         duration=(appointment.end - appointment.start).seconds // 60,
                         appointment_id=appointment.id,
                         display_name=appointment.demand.patient.last_name[0:3].upper(),
-                        color="#00ff5e"
+                        color=color
                     )
                     events.append(event)
 
@@ -94,7 +97,7 @@ async def get_calendar():
                         duration=maintenance.duration,
                         #appointment_id=maintenance.id,
                         display_name=maintenance.display_name,
-                        color=maintenance.color
+                        color="#FFFFFF"
                     )
 
                     print(event)

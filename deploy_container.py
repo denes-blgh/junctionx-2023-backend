@@ -20,6 +20,8 @@ if new not in branches:
 
 print(branches)
 
+os.system("git submodule update --init --recursive")
+
 os.system(f"docker stop junctionx_{new}")
 os.system(f"docker rm junctionx_{new}")
 
