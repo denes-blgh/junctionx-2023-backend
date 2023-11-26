@@ -67,12 +67,17 @@ async def get_calendar():
             events = []
             for appointment in appointments:
                 if appointment.resource_id == machine.id:
+                    color = "#36BDAD"
+                    if appointment.room_id == None:
+                        color = "#00ff5e"
+                    
                     event = Event(
                         start_hour=appointment.start.hour, 
                         start_minute=appointment.start.minute, 
                         duration=(appointment.end - appointment.start).seconds // 60,
                         appointment_id=appointment.id,
-                        display_name=appointment.demand.patient.last_name[0:3].upper()
+                        display_name=appointment.demand.patient.last_name[0:3].upper(),
+                        color=color
                     )
                     events.append(event)
 
@@ -87,6 +92,9 @@ async def get_calendar():
                         display_name=maintenance.display_name,
                         color=maintenance.color
                     )
+
+                    print(event)
+
                     events.append(event)
 
             day.machines.append(Machine(
