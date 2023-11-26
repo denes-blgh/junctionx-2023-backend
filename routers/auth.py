@@ -110,6 +110,9 @@ async def register(
     account = await _register(
         email=body.email,
         password=body.password,
+        first_name=body.first_name,
+        last_name=body.last_name,
+        gender=body.gender,
     )
 
     return AuthResponse(account_id=account.id)
