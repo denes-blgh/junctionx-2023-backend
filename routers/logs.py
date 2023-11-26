@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Response
 
 from models import *
 from dependencies.auth import require_staff_token, Token
@@ -17,3 +17,10 @@ async def get_logs(
         await LogResponse.create(log)
         for log in logs
     ]
+
+@router.delete("")
+async def clear_logs(
+    token: Annotated[Token, Depends(require_staff_token)],
+):
+    await Log.all().delete()
+    return Response(status_code=status.HTTP_200_OK)

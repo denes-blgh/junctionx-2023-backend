@@ -16,6 +16,11 @@ class CancerType(BaseModel):
     avg_duration: int # minutes
     probability: float # 0 to 1
 
+    def __hash__(self):
+        return hash(self.region)
+    
+    def __str__(self) -> str:
+        return self.region
 
 CRANIOSPINAL = CancerType(
     region="craniospinal",
@@ -113,4 +118,4 @@ cancer_types = [
 cancer_type_map = {c.region: c for c in cancer_types}
 
 def get_cancer_type(region: str) -> CancerType:
-    return cancer_type_map[region]
+    return cancer_type_map[region.lower()]
