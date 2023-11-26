@@ -97,7 +97,7 @@ async def get_calendar():
                         duration=maintenance.duration,
                         #appointment_id=maintenance.id,
                         display_name=maintenance.display_name,
-                        color="#FFFFFF"
+                        color="#FF0000"
                     )
 
                     print(event)
