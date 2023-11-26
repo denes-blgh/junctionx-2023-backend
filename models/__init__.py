@@ -234,14 +234,15 @@ class EventType(StrEnum):
     APPOINTMENT = "appointment"
     MAINTENANCE = "maintenance"
     FIDESZKETHARMAD = "fideszketharmad"
-    
+
 class MaintenanceEvent(models.Model):
-    start_hour: int = 0
-    start_minute: int = 0
-    duration: int
-    type: EventType
-    display_name: Optional[str] = None
-    color: str = "#36BDAD"
+    day = fields.IntField()
+    start_hour = fields.IntField()
+    start_minute = fields.IntField()
+    duration = fields.IntField()
+    resource_id = fields.IntField()
+    display_name = fields.TextField(null=True)
+    color = fields.TextField(null=True)
 
 
 class MaintenanceEventResponse(BaseModel):
@@ -249,7 +250,6 @@ class MaintenanceEventResponse(BaseModel):
     start_hour: int
     start_minute: int
     duration: int
-    type: EventType
     resource_id: int
     display_name: Optional[str] = None
     color: str = "#36BDAD"
@@ -261,7 +261,6 @@ class MaintenanceEventResponse(BaseModel):
             start_hour=event.start_hour,
             start_minute=event.start_minute,
             duration=event.duration,
-            type=event.type,
             resource_id=event.resource_id,
             display_name=event.display_name,
             color=event.color
