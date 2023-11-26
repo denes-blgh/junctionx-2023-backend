@@ -1,5 +1,9 @@
 # JunctionX Budapest 2023 - Backend
 
+The backend repository of our project, see the bottom of the page for the frontend. You can try our dashboard without installing through this link:
+
+https://junctionx-2023-frontend.vercel.app/
+
 ## Local development
 
 Build container:
@@ -14,14 +18,19 @@ docker run -p 127.0.0.1:7000:7000 -it -v .:/app junctionx
 
 Create migrations
 ```
-aerich migrate
+docker exec -it <container-id> aerich migrate
 ```
 
 Run migrations
 ```
-aerich upgrade
+docker exec -it <container-id> aerich upgrade
 ```
 
-Access the Swagger UI docs: http://localhost:7000/docs/
+Every branch is available on a Jenkins deployment with the format `https://dene.sh/junctionx/{branch}/api/`.
 
-Jenkins deployment: https://dene.sh/junctionx/api/
+Check out the Swagger UI Docs on https://dene.sh/junctionx/master/api/docs.
+
+## Frontend repository
+
+https://github.com/ZsombiTech/junctionx-2023-frontend
+
