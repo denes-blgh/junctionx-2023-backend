@@ -134,7 +134,7 @@ async def initialize_schedule(
             resource_id=appointment.machine_id,
             start=start,
             end=end,
-            room_id=appointment.room_id,
+            room_id=appointment.room_id if appointment.room_id != -1 else None,
         ))
     
     await Appointment.all().delete()

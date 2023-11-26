@@ -152,9 +152,18 @@ std::vector<Appointment> schedule (
                     continue;
                 }
 
+                if (demand.is_inpatient) {
+                    if (
+                        (demand.is_male && frame.male_remaining == 0) ||
+                        (!demand.is_male && frame.female_remaining == 0)
+                    ) continue;
+                }
+
                 for (size_t i = 0; i < machines.size(); i++)
                 {
                     auto &machine = machines[i];
+
+                    cycles++;
 
                     if (utilizations[i].total + demand.duration > day_length)
                     {
@@ -175,15 +184,9 @@ std::vector<Appointment> schedule (
 
                     if (demand.is_inpatient) {
                         if (demand.is_male) {
-                            if (new_frame.male_remaining == 0) {
-                                continue;
-                            }
                             new_frame.male_remaining--;
                         }
                         else {
-                            if (new_frame.female_remaining == 0) {
-                                continue;
-                            }
                             new_frame.female_remaining--;
                         }
                     }
@@ -206,8 +209,7 @@ std::vector<Appointment> schedule (
                         }
                     }
 
-                    cycles++;
-                    if (best_frame.depth >= 5 && cycles > 3 * best_cycles)
+                    if (best_frame.depth >= 5 && cycles > 5 * best_cycles)
                     {
                         // ending search cuz its leading nowhere
                         std::cerr << cycles << " " << best_cycles << std::endl;
