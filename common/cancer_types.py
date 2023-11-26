@@ -16,6 +16,9 @@ class CancerType(BaseModel):
     avg_duration: int # minutes
     probability: float # 0 to 1
 
+    def __hash__(self):
+        return hash(self.region)
+
 
 CRANIOSPINAL = CancerType(
     region="craniospinal",
