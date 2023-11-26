@@ -236,9 +236,8 @@ class EventType(StrEnum):
     FIDESZKETHARMAD = "fideszketharmad"
 
 class MaintenanceEvent(models.Model):
-    day = fields.IntField()
-    start_hour = fields.IntField()
-    start_minute = fields.IntField()
+    id = fields.IntField(pk=True)
+    start = fields.DatetimeField()
     duration = fields.IntField()
     resource_id = fields.IntField()
     display_name = fields.TextField(null=True)
@@ -247,8 +246,7 @@ class MaintenanceEvent(models.Model):
 
 class MaintenanceEventResponse(BaseModel):
     id: int
-    start_hour: int
-    start_minute: int
+    start: datetime.datetime
     duration: int
     resource_id: int
     display_name: Optional[str] = None
@@ -258,8 +256,7 @@ class MaintenanceEventResponse(BaseModel):
     async def create(cls, event: MaintenanceEvent):
         return cls(
             id=event.id,
-            start_hour=event.start_hour,
-            start_minute=event.start_minute,
+            start=event.start,
             duration=event.duration,
             resource_id=event.resource_id,
             display_name=event.display_name,
