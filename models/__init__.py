@@ -240,7 +240,7 @@ class MaintenanceEvent(models.Model):
     start_hour = fields.IntField()
     start_minute = fields.IntField()
     duration = fields.IntField()
-    type: fields.CharEnumField(EventType)
+    resource_id = fields.IntField()
     display_name = fields.TextField(null=True)
     color = fields.TextField(null=True)
 
@@ -250,7 +250,6 @@ class MaintenanceEventResponse(BaseModel):
     start_hour: int
     start_minute: int
     duration: int
-    type: EventType
     resource_id: int
     display_name: Optional[str] = None
     color: str = "#36BDAD"
@@ -262,7 +261,6 @@ class MaintenanceEventResponse(BaseModel):
             start_hour=event.start_hour,
             start_minute=event.start_minute,
             duration=event.duration,
-            type=event.type,
             resource_id=event.resource_id,
             display_name=event.display_name,
             color=event.color
