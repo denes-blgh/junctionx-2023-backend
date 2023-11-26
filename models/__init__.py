@@ -229,3 +229,40 @@ class RoomResponse(BaseModel):
             gender=room.gender,
             capacity=room.capacity,
         )
+
+class EventType(StrEnum):
+    APPOINTMENT = "appointment"
+    MAINTENANCE = "maintenance"
+    FIDESZKETHARMAD = "fideszketharmad"
+    
+class MaintenanceEvent(models.Model):
+    start_hour: int = 0
+    start_minute: int = 0
+    duration: int
+    type: EventType
+    display_name: Optional[str] = None
+    color: str = "#36BDAD"
+
+
+class MaintenanceEventResponse(BaseModel):
+    id: int
+    start_hour: int
+    start_minute: int
+    duration: int
+    type: EventType
+    resource_id: int
+    display_name: Optional[str] = None
+    color: str = "#36BDAD"
+
+    @classmethod
+    async def create(cls, event: MaintenanceEvent):
+        return cls(
+            id=event.id,
+            start_hour=event.start_hour,
+            start_minute=event.start_minute,
+            duration=event.duration,
+            type=event.type,
+            resource_id=event.resource_id,
+            display_name=event.display_name,
+            color=event.color
+        )
