@@ -32,7 +32,7 @@ class Event(BaseModel):
     appointment_id: Optional[int] = None
     resource_id: Optional[int] = None
     display_name: Optional[str] = None
-    color: str = "#36BDAD"
+    color: str
 
 
 async def get_calendar():
@@ -70,6 +70,7 @@ async def get_calendar():
                     color = "#36BDAD"
                     if appointment.room_id == None:
                         color = "#00ff5e"
+                        #print("has no room")
                     
                     event = Event(
                         start_hour=appointment.start.hour, 
@@ -77,9 +78,12 @@ async def get_calendar():
                         duration=(appointment.end - appointment.start).seconds // 60,
                         appointment_id=appointment.id,
                         display_name=appointment.demand.patient.last_name[0:3].upper(),
-                        color=color
+                        color="#00ff5e"
                     )
                     events.append(event)
+
+                    #if appointment.room_id == None:
+                        #print(event)
 
             for maintenance in maintenances:
                 if maintenance.resource_id == machine.id:
