@@ -27,7 +27,7 @@ class DemandBody(BaseModel):
     patient_id: int
     fractions: int
     is_inpatient: bool
-    created_at: datetime.datetime = None
+    created_at: Optional[datetime.datetime] = None
     weight: float
 
 
@@ -55,7 +55,7 @@ async def create_demand(
         patient_id=body.patient_id,
         fractions=body.fractions,
         is_inpatient=body.is_inpatient,
-        created_at=body.created_at,
+        created_at=body.created_at if body.created_at is not None else datetime.datetime.now(),
         weight=body.weight,
     )
     return await DemandResponse.create(demand)

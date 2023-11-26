@@ -113,4 +113,4 @@ cancer_types = [
 cancer_type_map = {c.region: c for c in cancer_types}
 
 def get_cancer_type(region: str) -> CancerType:
-    return cancer_type_map[region]
+    return cancer_type_map[region.lower()]
