@@ -18,7 +18,9 @@ class CancerType(BaseModel):
 
     def __hash__(self):
         return hash(self.region)
-
+    
+    def __str__(self) -> str:
+        return self.region
 
 CRANIOSPINAL = CancerType(
     region="craniospinal",
