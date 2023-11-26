@@ -45,7 +45,6 @@ async def get_statistics(
                 continue
             average_patients_per_machine_per_day[key] += 1
             if appointment.start.date() != prev_appointment.start.date():
-                print("Next day: ", appointment.start.date())
                 prev_appointment = appointment
                 patients_counter[key] += 1
                 continue
@@ -56,9 +55,11 @@ async def get_statistics(
         average_break_time_per_machine[key] /= 60
     
     demands = await Demand.all()
-    cancer_type_occurrences = { type: 0 for type in cancer_types }
+    cancer_type_occurrences = { type: 0 for type in [str(x) for x in cancer_types] }
     for demand in demands:
         cancer_type = get_cancer_type(demand.cancer_type)
-        cancer_type_occurrences[cancer_type] += 1
+        cancer_type_occurrences[str(cancer_type)] += 1
+
+    print(cancer_type_occurrences)
 
     return [time_per_machine, average_patients_per_machine_per_day, average_break_time_per_machine, cancer_type_occurrences]
