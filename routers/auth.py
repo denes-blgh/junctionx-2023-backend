@@ -5,16 +5,14 @@ import httpx
 from jose import jwt
 
 import common.config as config
-from models import Account, Gender
+from models import Account
 from common.auth import create_token, verify_password, hash_password, check_email
-from common.logger import log
 
 import time
 from urllib.parse import urlencode
 import secrets
 import random
 import os
-from typing import Optional
 
 router = APIRouter(tags=["auth"])
 
@@ -34,7 +32,7 @@ def _login(
         value=token,
         max_age=400 * 24 * 3600, # 400 days
         httponly=True,
-        samesite="none",
+        samesite="strict",
         secure=True,
     )
 
@@ -65,22 +63,17 @@ async def login(
         )
 
     if not verify_password(body.password, account.password):
-        await log(f"Login failed for account {str(account.id)} ({account.first_name} {account.last_name}).")
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "Wrong password.")
 
     _login(response, account)
-    await log(f"Account {str(account.id)} ({account.first_name} {account.last_name}) logged in.")
 
     return AuthResponse(account_id=account.id)
 
 
 async def _register(
-    first_name: str = None,
-    last_name: str = None,
     email: str = None,
     password: str = None,
     google_id: str = None,
-    gender: Gender = None,
 ):
     account = Account()
 
@@ -100,11 +93,7 @@ async def _register(
 
     account.created_at = int(time.time())
     account.updated_at = int(time.time())
-    account.first_name = first_name
-    account.last_name = last_name
-    account.gender = gender
     await account.save()
-    await log(f"Account {str(account.id)} ({account.first_name} {account.last_name}) registered.")
 
     return account
 
@@ -112,9 +101,6 @@ async def _register(
 class RegisterBody(BaseModel):
     email: str
     password: str
-    first_name: str
-    last_name: str
-    gender: Optional[Gender]
 
 
 @router.post("/register")
@@ -124,8 +110,6 @@ async def register(
     account = await _register(
         email=body.email,
         password=body.password,
-        first_name=body.first_name,
-        last_name=body.last_name,
     )
 
     return AuthResponse(account_id=account.id)
@@ -152,7 +136,7 @@ async def google_login():
         value=state,
         max_age=60 * 10, # 10 minutes
         httponly=True,
-        samesite="none",
+        samesite="lax",
         secure=True,
     )
 
@@ -211,24 +195,5 @@ async def google_callback(
         response = RedirectResponse("https://dene.sh/junctionx/staging/")
     
     _login(response, account)
-    await log(f"Account {str(account.id)} logged in.")
 
     return response
-
-
-@router.get("/logout")
-async def logout(response: Response):
-    try:
-        response = RedirectResponse(
-            'https://junctionx-2023-frontend.vercel.app/login', 
-            status_code=302
-        )
-        response.delete_cookie(
-            key="token",
-            samesite="none",
-            secure=True,
-        )
-    except: 
-        pass
-
-    return response if response else "Logged out."
