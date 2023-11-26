@@ -33,7 +33,7 @@ class Account(models.Model):
     created_at = fields.IntField() # unix timestamp
     updated_at = fields.IntField() # unix timestamp
 
-    type = fields.CharEnumField(AccountType, default=AccountType.PATIENT)
+    type = fields.CharEnumField(AccountType, default=AccountType.STAFF)
     gender = fields.CharEnumField(Gender, null=True)
     
     class Meta:
