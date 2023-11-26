@@ -1,8 +1,9 @@
 from fastapi import APIRouter, HTTPException, status, Depends
 from pydantic import BaseModel
 
-from models import Account, Resource
+from models import *
 from dependencies.auth import require_token, require_staff_token, require_account, Token
+from common.logger import log
 
 from typing import Annotated, Optional
 
@@ -10,25 +11,32 @@ from typing import Annotated, Optional
 router = APIRouter(tags=["resources"])
 
 
-class ResourceResponse(BaseModel):
-    id: int
-    name: str
-
 @router.get("")
 async def get_resources(
-    token: Annotated[Token, Depends(require_account)],
+    token: Annotated[Token, Depends(require_staff_token)],
 ):
     resources = await Resource.all()
     return [
-        ResourceResponse(
-            id=resource.id,
-            name=resource.name,
-        ) for resource in resources
+        await ResourceResponse.create(resource)
+        for resource in resources
     ]
 
 
+@router.get("/{id}")
+async def get_resource(
+    id: int,
+    token: Annotated[Token, Depends(require_staff_token)],
+):
+    resource = await Resource.get_or_none(id=id)
+
+    if resource is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND)
+
+    return await ResourceResponse.create(resource)
+
+
 class ResourceBody(BaseModel):
-    name: str
+    type: str
 
 @router.post("")
 async def create_resource(
@@ -36,12 +44,10 @@ async def create_resource(
     token: Annotated[Token, Depends(require_staff_token)],
 ):
     resource = await Resource.create(
-        name=body.name,
+        type=body.type,
     )
-    return ResourceResponse(
-        id=resource.id,
-        name=resource.name,
-    )
+    await log(f"Added resource: {resource.type} with id {resource.id}")
+    return await ResourceResponse.create(resource)
 
 
 @router.delete("/{id}")
@@ -55,10 +61,12 @@ async def delete_resource(
         raise HTTPException(status.HTTP_404_NOT_FOUND)
 
     await resource.delete()
+    await log(f"Deleted resource: {resource.type} with id {resource.id}")
 
 
 class ResourceUpdateBody(BaseModel):
-    name: Optional[str]
+    type: Optional[str]
+    status: Optional[ResourceStatus]
 
 @router.patch("/{id}")
 async def update_resource(
@@ -71,11 +79,9 @@ async def update_resource(
     if resource is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND)
 
-    if body.name is not None:
-        resource.name = body.name
+    if body.type is not None:
+        resource.type = body.type
 
     await resource.save()
-    return ResourceResponse(
-        id=resource.id,
-        name=resource.name,
-    )
+    await log(f"Updated resource: {resource.type} with id {resource.id}")
+    return await ResourceResponse.create(resource)
