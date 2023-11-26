@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends
 
 from models import *
 from dependencies.auth import require_staff_token, Token
+from common.cancer_types import cancer_types, get_cancer_type
 
 from typing import Annotated
 import datetime
@@ -54,4 +55,10 @@ async def get_statistics(
         average_break_time_per_machine[key] /= break_time_counter[key]
         average_break_time_per_machine[key] /= 60
     
-    return [time_per_machine, average_patients_per_machine_per_day, average_break_time_per_machine]
+    demands = await Demand.all()
+    cancer_type_occurrences = { type: 0 for type in cancer_types }
+    for demand in demands:
+        cancer_type = get_cancer_type(demand.cancer_type)
+        cancer_type_occurrences[cancer_type] += 1
+
+    return [time_per_machine, average_patients_per_machine_per_day, average_break_time_per_machine, cancer_type_occurrences]
